@@ -157,7 +157,7 @@ if (isset($_POST['submit'])) {
 <body>
     <div class="sidebar">
         <h2>Sistema de Cobro</h2>
-        <img src="logo.png" alt="Logo">
+        <img src="logoadesco.jpg" alt="Imagen de código" width="200">
         <a href="#">🏠 Inicio</a>
         <a href="Agregarderecho.php">👤 Tipo de derechohabiente</a>
         <a href="#">➕ Agregar derechohabiente</a>

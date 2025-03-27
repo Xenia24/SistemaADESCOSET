@@ -2,7 +2,7 @@
 $host = 'localhost';
 $usuario = 'root';  // Usuario por defecto de XAMPP
 $contrasena = '';   // Contraseña por defecto de XAMPP
-$baseDeDatos = 'login_db';
+$baseDeDatos = 'ADESCOSETdb';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$baseDeDatos", $usuario, $contrasena);
