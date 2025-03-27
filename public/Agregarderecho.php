@@ -171,7 +171,7 @@ if (isset($_POST['submit'])) {
         </div>
     </div>
     <div class="content">
-        <h1>Agregar derecho Ambiente</h1>
+        <h1>Agregar derecho  probando si se cambiaAmbiente</h1>
         <div class="form-container">
             <div class="form-group">
                 <label for="codigo">Código</label>
