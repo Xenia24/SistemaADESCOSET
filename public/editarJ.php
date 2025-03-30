@@ -1,30 +1,44 @@
 <?php
 session_start();
-include('../includes/db.php'); // Incluye la conexión a la base de datos
+include('../includes/db.php'); // Conexión a la base de datos
 
-// Verificar si el formulario de login ha sido enviado
-if (isset($_POST['submit'])) {
-    $correo = $_POST['correo'];
-    $contrasena = $_POST['contrasena'];
+// Verificar si el usuario está autenticado
+if (!isset($_SESSION['usuario_id'])) {
+    header('Location: login.php');
+    exit();
+}
 
-    $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE correo = :correo");
-    $stmt->bindParam(':correo', $correo);
+// Verificar si se está editando un registro
+$modo_edicion = false;
+$derechohabiente = [
+    'codigo' => '',
+    'nombre_completo' => '',
+    'direccion' => '',
+    'telefono' => '',
+    'identificacion' => '',
+    'estado' => '',
+    'tipo_derechohabiente' => 'juridica' // Cambié por jurídica para edición correcta
+];
+
+// Obtener datos del derechohabiente para edición
+if (isset($_GET['codigo'])) {
+    $codigo = $_GET['codigo'];
+
+    $stmt = $pdo->prepare("SELECT * FROM agregarderechohabiente WHERE codigo = :codigo");
+    $stmt->bindParam(':codigo', $codigo, PDO::PARAM_INT);
     $stmt->execute();
-    $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+    $derechohabiente = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($usuario && md5($contrasena) == $usuario['contrasena']) {
-        $_SESSION['usuario_id'] = $usuario['id'];
-        $_SESSION['tipo_usuario'] = $usuario['tipo_usuario'];
-        header('Location: dashboard.php');
-        exit();
+    if ($derechohabiente) {
+        $modo_edicion = true;
     } else {
-        $error = "Llenar todos los campos";
+        echo "<script>alert('¡No se encontró el derechohabiente!'); window.location.href='juridica.php';</script>";
+        exit();
     }
 }
 
-// Verificar si el formulario para agregar derechohabiente ha sido enviado
-if (isset($_POST['guardar'])) {
-    // Obtener valores del formulario
+// Procesar el formulario para guardar o editar
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $codigo = $_POST['codigo'];
     $nombre_completo = $_POST['nombre'];
     $direccion = $_POST['direccion'];
@@ -34,11 +48,28 @@ if (isset($_POST['guardar'])) {
     $tipo_derechohabiente = $_POST['tipo_derecho'];
 
     try {
-        // Consulta para insertar en la tabla
-        $stmt = $pdo->prepare("INSERT INTO agregarderechohabiente (codigo, nombre_completo, identificacion, direccion, estado, telefono, tipo_derechohabiente) 
-                               VALUES (:codigo, :nombre_completo, :identificacion, :direccion, :estado, :telefono, :tipo_derechohabiente)");
-        
-        // Vincular los valores
+        if ($modo_edicion) {
+            // Actualizar derechohabiente existente
+            $stmt = $pdo->prepare("UPDATE agregarderechohabiente SET 
+                                    nombre_completo = :nombre_completo,
+                                    direccion = :direccion,
+                                    telefono = :telefono,
+                                    identificacion = :identificacion,
+                                    estado = :estado,
+                                    tipo_derechohabiente = :tipo_derechohabiente
+                                    WHERE codigo = :codigo");
+
+            $mensaje_exito = "¡Registro actualizado exitosamente!";
+        } else {
+            // Insertar nuevo derechohabiente
+            $stmt = $pdo->prepare("INSERT INTO agregarderechohabiente 
+                                    (codigo, nombre_completo, identificacion, direccion, estado, telefono, tipo_derechohabiente)
+                                    VALUES (:codigo, :nombre_completo, :identificacion, :direccion, :estado, :telefono, :tipo_derechohabiente)");
+            
+            $mensaje_exito = "¡Registro guardado exitosamente!";
+        }
+
+        // Vincular valores
         $stmt->bindParam(':codigo', $codigo);
         $stmt->bindParam(':nombre_completo', $nombre_completo);
         $stmt->bindParam(':identificacion', $identificacion);
@@ -47,14 +78,14 @@ if (isset($_POST['guardar'])) {
         $stmt->bindParam(':telefono', $telefono);
         $stmt->bindParam(':tipo_derechohabiente', $tipo_derechohabiente);
 
-        // Ejecutar la consulta
+        // Ejecutar consulta
         if ($stmt->execute()) {
-            $success = "¡Registro guardado exitosamente!";
+            echo "<script>alert('$mensaje_exito'); window.location.href='juridica.php';</script>";
         } else {
-            $error_agregar = "Error al guardar el registro.";
+            echo "<script>alert('Error al guardar los cambios.');</script>";
         }
     } catch (PDOException $e) {
-        $error_agregar = "Error: " . $e->getMessage();
+        echo "<script>alert('Error: " . $e->getMessage() . "');</script>";
     }
 }
 ?>
@@ -65,7 +96,8 @@ if (isset($_POST['guardar'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Cobro</title>
+    <title><?= $modo_edicion ? 'Editar' : 'Agregar' ?> Derechohabiente</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -78,7 +110,7 @@ if (isset($_POST['guardar'])) {
             display: flex;
             flex-direction: column;
             height: 100vh;
-            background-color: #E0F7FA;
+            background-color: #f4f4f4;
         }
 
         /* Barra superior */
@@ -103,23 +135,13 @@ if (isset($_POST['guardar'])) {
             gap: 10px;
         }
 
-        .admin-container span {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-weight: bold;
-        }
-
-        .icon {
-            font-size: 18px;
-        }
-
         .admin-container a {
             text-decoration: none;
             background-color: red;
             color: white;
             padding: 8px 12px;
             border-radius: 5px;
+            transition: background-color 0.3s;
         }
 
         .admin-container a:hover {
@@ -144,8 +166,8 @@ if (isset($_POST['guardar'])) {
         }
 
         .sidebar img {
-            width: 120px;
-            margin: 0 auto 20px auto;
+            width: 100px;
+            margin: 0 auto 15px auto;
             display: block;
             border-radius: 10px;
         }
@@ -158,9 +180,6 @@ if (isset($_POST['guardar'])) {
         .sidebar a {
             text-decoration: none;
             color: white;
-            display: flex;
-            align-items: center;
-            gap: 10px;
             padding: 10px;
             border-radius: 5px;
             transition: background 0.3s;
@@ -168,24 +187,6 @@ if (isset($_POST['guardar'])) {
 
         .sidebar a:hover {
             background-color: #007c91;
-        }
-
-        .submenu {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            padding-left: 20px;
-        }
-
-        .submenu a {
-            font-size: 14px;
-            padding: 8px;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-        }
-
-        .submenu a:hover {
-            background-color: rgba(255, 255, 255, 0.4);
         }
 
         /* Contenido principal */
@@ -243,10 +244,6 @@ if (isset($_POST['guardar'])) {
             color: white;
         }
 
-        .btn-cancel:hover {
-            background-color: darkred;
-        }
-
         .bottom-bar {
             width: 100%;
             text-align: center;
@@ -254,85 +251,30 @@ if (isset($_POST['guardar'])) {
             background-color: #0097A7;
             color: white;
         }
-
-        .success {
-            color: green;
-            margin-bottom: 10px;
-        }
-
-        .error {
-            color: red;
-            margin-bottom: 10px;
-        }
-
-        /* Estilos para Estado */
-        .estado-container {
-            display: flex;
-            gap: 20px;
-            margin-top: 5px;
-        }
-
-        .estado-container label {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            cursor: pointer;
-        }
-
-        .estado-container input {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-
-        .checkmark {
-            height: 20px;
-            width: 20px;
-            border-radius: 5px;
-            display: inline-block;
-            border: 2px solid #ccc;
-            background-color: #f4f4f4;
-            transition: all 0.2s ease-in-out;
-        }
-
-        /* Estilo para ACTIVO (verde) */
-        #activo:checked + .checkmark {
-            background-color: green;
-            border-color: green;
-        }
-
-        /* Estilo para INACTIVO (rojo) */
-        #inactivo:checked + .checkmark {
-            background-color: red;
-            border-color: red;
-        }
     </style>
 </head>
 
 <body>
+
     <!-- Barra superior -->
     <div class="top-bar">
-        <h2>Sistema de Cobro</h2>
+        <h2><?= $modo_edicion ? 'Editar' : 'Agregar' ?> Derechohabiente</h2>
         <div class="admin-container">
-            <span class="icon">🔄</span>
-            <span>Admin name 👤</span>
             <a href="logout.php">Cerrar sesión</a>
         </div>
     </div>
 
     <!-- Contenedor principal -->
     <div class="container">
-        <!-- Sidebar -->
+        <!-- Sidebar (Menú) -->
         <div class="sidebar">
             <img src="logoadesco.jpg" alt="Logo de ADESCOSET">
             <h3>Sistema de Cobro</h3>
             <a href="dashboard.php">🏠 Inicio</a>
             <a href="derechohabiente.php">👤 Tipo de derechohabiente ⏷</a>
-            <div class="submenu">
-                <a href="Agregarderecho.php">➕ Agregar derechohabiente</a>
-                <a href="Natural.php">📌 Natural</a>
-                <a href="juridica.php">📌 Jurídica</a>
-            </div>
+            <a href="Agregarderecho.php">➕ Agregar derechohabiente</a>
+            <a href="natural.php">📌 Natural</a>
+            <a href="juridica.php">📌 Jurídica</a>
             <a href="recibo.php">🧾 Recibo</a>
             <a href="listado.php">📋 Listado</a>
             <a href="reporte.php">📊 Reporte</a>
@@ -340,70 +282,57 @@ if (isset($_POST['guardar'])) {
 
         <!-- Contenido principal -->
         <div class="content">
-            <h1>Agregar Derechohabiente</h1>
+            <h1><?= $modo_edicion ? 'Editar' : 'Agregar' ?> Derechohabiente</h1>
 
-            <!-- Mostrar mensajes de éxito o error para guardar derechohabientes -->
-            <?php if (isset($success)) : ?>
-                <p class="success"><?= $success ?></p>
-            <?php elseif (isset($error_agregar)) : ?>
-                <p class="error"><?= $error_agregar ?></p>
-            <?php endif; ?>
-
-            <!-- Formulario para agregar derechohabiente -->
+            <!-- Formulario para editar/agregar derechohabiente -->
             <div class="form-container">
                 <form method="POST" action="">
                     <div class="form-group">
                         <label for="codigo">Código</label>
-                        <input type="number" id="codigo" name="codigo" required>
+                        <input type="number" id="codigo" name="codigo" value="<?= htmlspecialchars($derechohabiente['codigo']) ?>" required <?= $modo_edicion ? 'readonly' : '' ?>>
                     </div>
 
                     <div class="form-group">
                         <label for="nombre">Nombre Completo</label>
-                        <input type="text" id="nombre" name="nombre" required>
+                        <input type="text" id="nombre" name="nombre" value="<?= htmlspecialchars($derechohabiente['nombre_completo']) ?>" required>
                     </div>
 
                     <div class="form-group">
                         <label for="direccion">Dirección</label>
-                        <input type="text" id="direccion" name="direccion" required>
+                        <input type="text" id="direccion" name="direccion" value="<?= htmlspecialchars($derechohabiente['direccion']) ?>" required>
                     </div>
 
                     <div class="form-group">
                         <label for="telefono">Teléfono</label>
-                        <input type="text" id="telefono" name="telefono" required>
+                        <input type="text" id="telefono" name="telefono" value="<?= htmlspecialchars($derechohabiente['telefono']) ?>" required>
                     </div>
 
                     <div class="form-group">
                         <label for="identificacion">Identificación</label>
-                        <input type="text" id="identificacion" name="identificacion" required>
+                        <input type="text" id="identificacion" name="identificacion" value="<?= htmlspecialchars($derechohabiente['identificacion']) ?>" required>
                     </div>
 
                     <!-- Estado -->
                     <div class="form-group">
                         <label>Estado</label>
-                        <div class="estado-container">
-                            <label>
-                                <input type="checkbox" id="activo" name="estado" value="activo" onclick="seleccionarUnico(this)">
-                                <span class="checkmark"></span> Activo
-                            </label>
-                            <label>
-                                <input type="checkbox" id="inactivo" name="estado" value="inactivo" onclick="seleccionarUnico(this)">
-                                <span class="checkmark"></span> Inactivo
-                            </label>
-                        </div>
+                        <select name="estado" required>
+                            <option value="activo" <?= $derechohabiente['estado'] == 'activo' ? 'selected' : '' ?>>Activo</option>
+                            <option value="inactivo" <?= $derechohabiente['estado'] == 'inactivo' ? 'selected' : '' ?>>Inactivo</option>
+                        </select>
                     </div>
 
                     <!-- Tipo de derechohabiente -->
                     <div class="form-group">
                         <label for="tipo_derecho">Tipo de derechohabiente</label>
                         <select id="tipo_derecho" name="tipo_derecho" required>
-                            <option value="natural">Natural</option>
-                            <option value="juridica">Jurídica</option>
+                            <option value="natural" <?= $derechohabiente['tipo_derechohabiente'] == 'natural' ? 'selected' : '' ?>>Natural</option>
+                            <option value="juridica" <?= $derechohabiente['tipo_derechohabiente'] == 'juridica' ? 'selected' : '' ?>>Jurídica</option>
                         </select>
                     </div>
 
                     <div class="buttons">
-                        <button type="reset" class="btn btn-cancel">Cancelar</button>
-                        <button type="submit" name="guardar" class="btn btn-save">Guardar</button>
+                        <a href="juridica.php" class="btn btn-cancel">Cancelar</a>
+                        <button type="submit" class="btn btn-save"><?= $modo_edicion ? 'Actualizar' : 'Guardar' ?></button>
                     </div>
                 </form>
             </div>
@@ -414,18 +343,6 @@ if (isset($_POST['guardar'])) {
     <div class="bottom-bar">
         Desarrolladores © 2025 Xenia, Ivania, Erick
     </div>
-
-    <script>
-        // Solo permite seleccionar un checkbox a la vez
-        function seleccionarUnico(elemento) {
-            var checkboxes = document.querySelectorAll('input[name="estado"]');
-            checkboxes.forEach(function (cb) {
-                if (cb !== elemento) {
-                    cb.checked = false;
-                }
-            });
-        }
-    </script>
 </body>
 
 </html>
