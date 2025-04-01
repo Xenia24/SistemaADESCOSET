@@ -86,7 +86,7 @@
 <body>
     <div class="top-bar">
         <h1>Menú de Opciones</h1>
-        <button onclick="location.href='../view/login.php'">Cerrar Sesion</button>
+        <button onclick="location.href='login.php'">Cerrar Sesion</button>
     </div>
     <div class="container-wrapper">
         <div class="container">
@@ -94,7 +94,7 @@
                 <img src="../Image/inventario.png.png" alt="Logo" style="width: 100%; height: 300px; border-radius: 10px;">
             </div>
             <div class="card">
-                <a href="../view/dashboard.php" class="option-button">Cobro</a>
+                <a href="login.php" class="option-button">Cobro</a>
             </div>
         </div>
         <div class="container">
@@ -102,7 +102,7 @@
                 <img src="../Image/cobro.png" alt="Logo" style="width: 100%; height: 300px; border-radius: 10px;">
             </div>
             <div class="card">
-                <a href="opcion2.php" class="option-button">Inventario</a>
+                <a href="login.php" class="option-button">Inventario</a>
             </div>
         </div>    
     </div>
