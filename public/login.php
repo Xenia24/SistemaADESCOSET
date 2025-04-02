@@ -21,112 +21,158 @@ if (isset($_POST['submit'])) {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="../css/styles.css">
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f8f0f0;
-        }
-        .top-bar {
-            width: 100%;
-            height: 60px;
-            background-color:rgb(71, 146, 167);
-            position: fixed;
-            top: 0;
-            left: 0;
-        }
-        .container {
-            text-align: center;
-            width: 350px;
-            background: #e0f7fa;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            margin-top: 50px;
-            position: relative;
-        }
-        .user-icon {
-            width: 80px;
-            height: 80px;
-           
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto 15px auto;
-        }
-        .user-icon img {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-        }
-        .input-container {
-            position: relative;
-            margin: 15px auto;
-            width: 100%;
-        }
-        .input-container input {
-            width: calc(100% - 50px);
-            padding: 10px 10px 10px 50px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            display: block;
-            margin: 0 auto;
-        }
-        .input-container img {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 25px;
-            height: 25px;
-        }
-        button {
-            width: 50%;
-            margin-top: 10px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color:rgb(87, 100, 100);
-            color: black;
-            cursor: pointer;
-        }
-        .error {
-            color: red;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: url('../Image/fon1.png') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding-top: 80px;
+      padding-bottom: 60px;
+    }
+
+    .top-bar {
+      width: 100%;
+      height: 60px;
+      background-color: rgb(0, 144, 175);
+      position: fixed;
+      top: 0;
+      left: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+      z-index: 1000;
+    }
+
+    .container {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 30px 25px;
+      width: 330px;
+      border: 1px solid #333;
+      border-radius: 6px;
+      box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+
+    .user-icon {
+      width: 90px;
+      height: 90px;
+      margin: 0 auto 15px;
+    }
+
+    .user-icon img {
+      width: 100%;
+      height: 100%;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .input-container {
+      position: relative;
+      margin-bottom: 18px;
+    }
+
+    .input-container input {
+      width: 100%;
+      padding: 10px 10px 10px 40px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .input-container img {
+      position: absolute;
+      top: 50%;
+      left: 10px;
+      width: 20px;
+      height: 20px;
+      transform: translateY(-50%);
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      background-color: rgb(87, 100, 100);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: rgb(67, 80, 80);
+    }
+
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+
+    .footer-bar {
+      width: 100%;
+      height: 50px;
+      background-color: rgb(0, 144, 175);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
-    <div class="top-bar"></div>
-    <div class="container">
-        <div class="user-icon">
-            <img src="avatar.png"   alt="Avatar">
-        </div>
-        <h2>INICIO DE SESIÓN</h2>
-        <form method="POST" action="login.php">
-            <div class="input-container">
-                <img src="avatar.png" alt="Usuario">
-                <input type="email" name="correo" placeholder="Correo" required>
-            </div>
-            <div class="input-container">
-                <img src="candado.png" alt="Candado">
-                <input type="password" name="contrasena" placeholder="Contraseña" required>
-            </div>
-            <button type="submit" name="submit">Entrar</button>
-            <?php if (isset($error)) { echo "<p class='error'>$error</p>"; } ?>
-        </form>
-        <p>Desarrolladores<br>&copy; 2025 xenia,  Erick, Ivania</p>
+
+  <div class="top-bar">
+
+  </div>
+
+  <div class="container">
+    <div class="user-icon">
+      <img src="avatar.png" alt="Icono usuario" />
     </div>
+    <h2>INICIO DE SESIÓN</h2>
+    <form method="POST" action="login.php">
+      <div class="input-container">
+        <img src="avatar.png" alt="Usuario">
+        <input type="email" name="correo" placeholder="Correo" required />
+      </div>
+      <div class="input-container">
+        <img src="candado.png" alt="Contraseña">
+        <input type="password" name="contrasena" placeholder="Contraseña" required />
+      </div>
+      <button type="submit" name="submit">Entrar</button>
+      <?php if (isset($error)) { echo "<p class='error'>$error</p>"; } ?>
+    </form>
+  </div>
+
+  <div class="footer-bar">
+    &copy; 2025 Xenia, Erick, Ivania — Todos los derechos reservados
+  </div>
+
 </body>
 </html>
