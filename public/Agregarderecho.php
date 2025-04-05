@@ -24,7 +24,6 @@ if (isset($_POST['submit'])) {
 
 // Verificar si el formulario para agregar derechohabiente ha sido enviado
 if (isset($_POST['guardar'])) {
-    // Obtener valores del formulario
     $codigo = $_POST['codigo'];
     $nombre_completo = $_POST['nombre'];
     $direccion = $_POST['direccion'];
@@ -34,11 +33,9 @@ if (isset($_POST['guardar'])) {
     $tipo_derechohabiente = $_POST['tipo_derecho'];
 
     try {
-        // Consulta para insertar en la tabla
         $stmt = $pdo->prepare("INSERT INTO agregarderechohabiente (codigo, nombre_completo, identificacion, direccion, estado, telefono, tipo_derechohabiente) 
                                VALUES (:codigo, :nombre_completo, :identificacion, :direccion, :estado, :telefono, :tipo_derechohabiente)");
         
-        // Vincular los valores
         $stmt->bindParam(':codigo', $codigo);
         $stmt->bindParam(':nombre_completo', $nombre_completo);
         $stmt->bindParam(':identificacion', $identificacion);
@@ -47,7 +44,6 @@ if (isset($_POST['guardar'])) {
         $stmt->bindParam(':telefono', $telefono);
         $stmt->bindParam(':tipo_derechohabiente', $tipo_derechohabiente);
 
-        // Ejecutar la consulta
         if ($stmt->execute()) {
             $success = "¡Registro guardado exitosamente!";
         } else {
@@ -61,7 +57,6 @@ if (isset($_POST['guardar'])) {
 
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -81,7 +76,6 @@ if (isset($_POST['guardar'])) {
             background-color: #E0F7FA;
         }
 
-        /* Barra superior */
         .top-bar {
             width: 100%;
             height: 60px;
@@ -126,13 +120,11 @@ if (isset($_POST['guardar'])) {
             background-color: darkred;
         }
 
-        /* Contenedor principal */
         .container {
             display: flex;
             flex: 1;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 250px;
             background-color: #0097A7;
@@ -143,16 +135,11 @@ if (isset($_POST['guardar'])) {
             gap: 10px;
         }
 
-        .sidebar img {
+        .sidebar img.logo {
             width: 120px;
             margin: 0 auto 20px auto;
             display: block;
             border-radius: 10px;
-        }
-
-        .sidebar h3 {
-            text-align: center;
-            margin-bottom: 15px;
         }
 
         .sidebar a {
@@ -170,6 +157,11 @@ if (isset($_POST['guardar'])) {
             background-color: #007c91;
         }
 
+        .sidebar a img {
+            width: 20px;
+            height: 20px;
+        }
+
         .submenu {
             display: flex;
             flex-direction: column;
@@ -182,13 +174,20 @@ if (isset($_POST['guardar'])) {
             padding: 8px;
             background-color: rgba(255, 255, 255, 0.2);
             border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .submenu a:hover {
             background-color: rgba(255, 255, 255, 0.4);
         }
 
-        /* Contenido principal */
+        .submenu a img {
+            width: 16px;
+            height: 16px;
+        }
+
         .content {
             flex: 1;
             background-color: white;
@@ -212,8 +211,7 @@ if (isset($_POST['guardar'])) {
             display: block;
         }
 
-        input,
-        select {
+        input, select {
             width: 100%;
             padding: 8px;
             border: 1px solid #ccc;
@@ -265,7 +263,6 @@ if (isset($_POST['guardar'])) {
             margin-bottom: 10px;
         }
 
-        /* Estilos para Estado */
         .estado-container {
             display: flex;
             gap: 20px;
@@ -295,13 +292,11 @@ if (isset($_POST['guardar'])) {
             transition: all 0.2s ease-in-out;
         }
 
-        /* Estilo para ACTIVO (verde) */
         #activo:checked + .checkmark {
             background-color: green;
             border-color: green;
         }
 
-        /* Estilo para INACTIVO (rojo) */
         #inactivo:checked + .checkmark {
             background-color: red;
             border-color: red;
@@ -324,32 +319,52 @@ if (isset($_POST['guardar'])) {
     <div class="container">
         <!-- Sidebar -->
         <div class="sidebar">
-            <img src="logoadesco.jpg" alt="Logo de ADESCOSET">
+            <img src="logoadesco.jpg" alt="Logo de ADESCOSET" class="logo">
             <h3>Sistema de Cobro</h3>
-            <a href="dashboard.php">🏠 Inicio</a>
-            <a href="derechohabiente.php">👤 Tipo de derechohabiente ⏷</a>
+
+            <a href="dashboard.php">
+                <img src="../Image/hogarM.png" alt="Inicio"> Inicio
+            </a>
+
+            <a href="derechohabiente.php">
+                <img src="../Image/avatar1.png" alt="Tipo de derechohabiente"> Tipo de derechohabiente ⏷
+            </a>
+
             <div class="submenu">
-                <a href="Agregarderecho.php">➕ Agregar derechohabiente</a>
-                <a href="Natural.php">📌 Natural</a>
-                <a href="juridica.php">📌 Jurídica</a>
+                <a href="Agregarderecho.php">
+                    <img src="../Image/nuevo-usuario.png" alt="Agregar derechohabiente"> Agregar derechohabiente
+                </a>
+                <a href="Natural.php">
+                    <img src="../Image/usuario1.png" alt="Natural"> Natural
+                </a>
+                <a href="juridica.php">
+                    <img src="../Image/grandes-almacenes.png" alt="Jurídica"> Jurídica
+                </a>
             </div>
-            <a href="recibo.php">🧾 Recibo</a>
-            <a href="listado.php">📋 Listado</a>
-            <a href="reporte.php">📊 Reporte</a>
+
+            <a href="recibo.php">
+                <img src="../Image/factura.png" alt="Recibo"> Recibo
+            </a>
+
+            <a href="listado.php">
+                <img src="../Image/lista.png" alt="Listado"> Listado
+            </a>
+
+            <a href="reporte.php">
+                <img src="../Image/reporte.png" alt="Reporte"> Reporte
+            </a>
         </div>
 
         <!-- Contenido principal -->
         <div class="content">
             <h1>Agregar Derechohabiente</h1>
 
-            <!-- Mostrar mensajes de éxito o error para guardar derechohabientes -->
             <?php if (isset($success)) : ?>
                 <p class="success"><?= $success ?></p>
             <?php elseif (isset($error_agregar)) : ?>
                 <p class="error"><?= $error_agregar ?></p>
             <?php endif; ?>
 
-            <!-- Formulario para agregar derechohabiente -->
             <div class="form-container">
                 <form method="POST" action="">
                     <div class="form-group">
@@ -377,7 +392,6 @@ if (isset($_POST['guardar'])) {
                         <input type="text" id="identificacion" name="identificacion" required>
                     </div>
 
-                    <!-- Estado -->
                     <div class="form-group">
                         <label>Estado</label>
                         <div class="estado-container">
@@ -392,7 +406,6 @@ if (isset($_POST['guardar'])) {
                         </div>
                     </div>
 
-                    <!-- Tipo de derechohabiente -->
                     <div class="form-group">
                         <label for="tipo_derecho">Tipo de derechohabiente</label>
                         <select id="tipo_derecho" name="tipo_derecho" required>
@@ -410,13 +423,11 @@ if (isset($_POST['guardar'])) {
         </div>
     </div>
 
-    <!-- Pie de página -->
     <div class="bottom-bar">
         Desarrolladores © 2025 Xenia, Ivania, Erick
     </div>
 
     <script>
-        // Solo permite seleccionar un checkbox a la vez
         function seleccionarUnico(elemento) {
             var checkboxes = document.querySelectorAll('input[name="estado"]');
             checkboxes.forEach(function (cb) {
@@ -427,5 +438,4 @@ if (isset($_POST['guardar'])) {
         }
     </script>
 </body>
-
 </html>

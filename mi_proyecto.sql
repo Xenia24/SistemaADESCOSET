@@ -78,3 +78,22 @@ CREATE TABLE agregarderechohabiente (
     telefono VARCHAR(15) NOT NULL,
     tipo_derechohabiente ENUM('natural', 'juridica') NOT NULL
 );
+
+CREATE TABLE recibos (
+    numero_recibo INT AUTO_INCREMENT PRIMARY KEY,
+    fecha_emision DATE,
+    fecha_vencimiento DATE,
+    propietario VARCHAR(100),
+    direccion VARCHAR(200),
+    fecha_lectura DATE,
+    numero_suministro VARCHAR(50),
+    numero_medidor VARCHAR(50),
+    metros_cubicos DECIMAL(10,2),
+    lectura_anterior DECIMAL(10,2),
+    lectura_actual DECIMAL(10,2),
+    meses_pendiente INT,
+    multas DECIMAL(10,2),
+    total DECIMAL(10,2),
+    estado_pago ENUM('Pagado', 'No pagado', 'En mora', 'Pagado fuera de fecha') DEFAULT 'No pagado'
+);
+

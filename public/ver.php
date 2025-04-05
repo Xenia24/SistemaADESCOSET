@@ -53,7 +53,6 @@ if (isset($_GET['codigo'])) {
             background-color: #f4f4f4;
         }
 
-        /* Barra superior */
         .top-bar {
             width: 100%;
             height: 60px;
@@ -88,13 +87,11 @@ if (isset($_GET['codigo'])) {
             background-color: darkred;
         }
 
-        /* Contenedor principal */
         .container {
             display: flex;
             flex: 1;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 250px;
             background-color: #0097A7;
@@ -105,7 +102,7 @@ if (isset($_GET['codigo'])) {
             gap: 10px;
         }
 
-        .sidebar img {
+        .sidebar img.logo {
             width: 100px;
             margin: 0 auto 15px auto;
             display: block;
@@ -122,9 +119,16 @@ if (isset($_GET['codigo'])) {
             color: white;
             padding: 10px;
             border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        /* Contenido principal */
+        .sidebar a img {
+            width: 20px;
+            height: 20px;
+        }
+
         .content {
             flex: 1;
             background-color: white;
@@ -134,7 +138,6 @@ if (isset($_GET['codigo'])) {
             overflow-x: auto;
         }
 
-        /* Estilo del detalle */
         .detalle-container {
             background-color: #f9f9f9;
             padding: 20px;
@@ -176,7 +179,6 @@ if (isset($_GET['codigo'])) {
             width: 100%;
         }
 
-        /* Estilo para el checkbox */
         .checkbox-container {
             display: flex;
             align-items: center;
@@ -184,7 +186,6 @@ if (isset($_GET['codigo'])) {
             margin-top: 5px;
         }
 
-        /* Botón volver */
         .btn-back {
             display: inline-block;
             margin-top: 20px;
@@ -199,7 +200,6 @@ if (isset($_GET['codigo'])) {
             background-color: #46b8da;
         }
 
-        /* Barra inferior */
         .bottom-bar {
             width: 100%;
             text-align: center;
@@ -208,7 +208,6 @@ if (isset($_GET['codigo'])) {
             color: white;
         }
 
-        /* Diseño responsivo */
         @media (max-width: 768px) {
             .detalle-col {
                 width: 100%;
@@ -228,8 +227,6 @@ if (isset($_GET['codigo'])) {
 </head>
 
 <body>
-
-    <!-- Barra superior -->
     <div class="top-bar">
         <h2><i class="fas fa-info-circle"></i> Detalle derechohabiente</h2>
         <div class="admin-container">
@@ -239,28 +236,24 @@ if (isset($_GET['codigo'])) {
         </div>
     </div>
 
-    <!-- Contenedor principal -->
     <div class="container">
-        <!-- Sidebar -->
         <div class="sidebar">
-            <img src="logoadesco.jpg" alt="Logo de ADESCOSET">
+            <img src="logoadesco.jpg" alt="Logo de ADESCOSET" class="logo">
             <h3>Sistema de Cobro</h3>
-            <a href="dashboard.php">🏠 Inicio</a>
-            <a href="derechohabiente.php">👤 Tipo de derechohabiente ⏷</a>
-            <a href="Agregarderecho.php">➕ Agregar derechohabiente</a>
-            <a href="natural.php">📌 Natural</a>
-            <a href="juridica.php">📌 Jurídica</a>
-            <a href="recibo.php">🧾 Recibo</a>
-            <a href="listado.php">📋 Listado</a>
-            <a href="reporte.php">📊 Reporte</a>
+            <a href="dashboard.php"><img src="../Image/hogarM.png" alt="Inicio"> Inicio</a>
+            <a href="derechohabiente.php"><img src="../Image/avatar1.png" alt="Tipo"> Tipo de derechohabiente ⏷</a>
+            <a href="Agregarderecho.php"><img src="../Image/nuevo-usuario.png" alt="Agregar"> Agregar derechohabiente</a>
+            <a href="natural.php"><img src="../Image/usuario1.png" alt="Natural"> Natural</a>
+            <a href="juridica.php"><img src="../Image/grandes-almacenes.png" alt="Jurídica"> Jurídica</a>
+            <a href="recibo.php"><img src="../Image/factura.png" alt="Recibo"> Recibo</a>
+            <a href="listado.php"><img src="../Image/lista.png" alt="Listado"> Listado</a>
+            <a href="reporte.php"><img src="../Image/reporte.png" alt="Reporte"> Reporte</a>
         </div>
 
-        <!-- Contenido principal -->
         <div class="content">
             <div class="detalle-container">
                 <div class="detalle-header">Información de propietario.</div>
 
-                <!-- Primera fila -->
                 <div class="detalle-row">
                     <div class="detalle-col">
                         <label>Código</label>
@@ -272,7 +265,6 @@ if (isset($_GET['codigo'])) {
                     </div>
                 </div>
 
-                <!-- Segunda fila -->
                 <div class="detalle-row">
                     <div class="detalle-col">
                         <label>Nombre Completo</label>
@@ -287,7 +279,6 @@ if (isset($_GET['codigo'])) {
                     </div>
                 </div>
 
-                <!-- Tercera fila -->
                 <div class="detalle-row">
                     <div class="detalle-col">
                         <label>Dirección</label>
@@ -299,7 +290,6 @@ if (isset($_GET['codigo'])) {
                     </div>
                 </div>
 
-                <!-- Cuarta fila -->
                 <div class="detalle-row">
                     <div class="detalle-col">
                         <label>Teléfono</label>
@@ -307,17 +297,14 @@ if (isset($_GET['codigo'])) {
                     </div>
                 </div>
 
-                <!-- Botón para volver -->
                 <a href="natural.php" class="btn-back"><i class="fas fa-arrow-left"></i> Volver</a>
             </div>
         </div>
     </div>
 
-    <!-- Barra inferior -->
     <div class="bottom-bar">
         Desarrolladores © 2025 Xenia, Ivania, Erick
     </div>
-
 </body>
 
 </html>

@@ -17,7 +17,7 @@ $derechohabiente = [
     'telefono' => '',
     'identificacion' => '',
     'estado' => '',
-    'tipo_derechohabiente' => 'juridica' // Cambié por jurídica para edición correcta
+    'tipo_derechohabiente' => 'juridica'
 ];
 
 // Obtener datos del derechohabiente para edición
@@ -49,7 +49,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         if ($modo_edicion) {
-            // Actualizar derechohabiente existente
             $stmt = $pdo->prepare("UPDATE agregarderechohabiente SET 
                                     nombre_completo = :nombre_completo,
                                     direccion = :direccion,
@@ -58,18 +57,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     estado = :estado,
                                     tipo_derechohabiente = :tipo_derechohabiente
                                     WHERE codigo = :codigo");
-
             $mensaje_exito = "¡Registro actualizado exitosamente!";
         } else {
-            // Insertar nuevo derechohabiente
             $stmt = $pdo->prepare("INSERT INTO agregarderechohabiente 
                                     (codigo, nombre_completo, identificacion, direccion, estado, telefono, tipo_derechohabiente)
                                     VALUES (:codigo, :nombre_completo, :identificacion, :direccion, :estado, :telefono, :tipo_derechohabiente)");
-            
             $mensaje_exito = "¡Registro guardado exitosamente!";
         }
 
-        // Vincular valores
         $stmt->bindParam(':codigo', $codigo);
         $stmt->bindParam(':nombre_completo', $nombre_completo);
         $stmt->bindParam(':identificacion', $identificacion);
@@ -78,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':telefono', $telefono);
         $stmt->bindParam(':tipo_derechohabiente', $tipo_derechohabiente);
 
-        // Ejecutar consulta
         if ($stmt->execute()) {
             echo "<script>alert('$mensaje_exito'); window.location.href='juridica.php';</script>";
         } else {
@@ -113,7 +107,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background-color: #f4f4f4;
         }
 
-        /* Barra superior */
         .top-bar {
             width: 100%;
             height: 60px;
@@ -148,13 +141,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background-color: darkred;
         }
 
-        /* Contenedor principal */
         .container {
             display: flex;
             flex: 1;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 250px;
             background-color: #0097A7;
@@ -165,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 10px;
         }
 
-        .sidebar img {
+        .sidebar img.logo {
             width: 100px;
             margin: 0 auto 15px auto;
             display: block;
@@ -180,6 +171,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .sidebar a {
             text-decoration: none;
             color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             padding: 10px;
             border-radius: 5px;
             transition: background 0.3s;
@@ -189,7 +183,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background-color: #007c91;
         }
 
-        /* Contenido principal */
+        .sidebar a img {
+            width: 20px;
+            height: 20px;
+        }
+
         .content {
             flex: 1;
             background-color: white;
@@ -255,8 +253,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 
 <body>
-
-    <!-- Barra superior -->
     <div class="top-bar">
         <h2><?= $modo_edicion ? 'Editar' : 'Agregar' ?> Derechohabiente</h2>
         <div class="admin-container">
@@ -264,27 +260,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
-    <!-- Contenedor principal -->
     <div class="container">
-        <!-- Sidebar (Menú) -->
         <div class="sidebar">
-            <img src="logoadesco.jpg" alt="Logo de ADESCOSET">
+            <img src="logoadesco.jpg" alt="Logo de ADESCOSET" class="logo">
             <h3>Sistema de Cobro</h3>
-            <a href="dashboard.php">🏠 Inicio</a>
-            <a href="derechohabiente.php">👤 Tipo de derechohabiente ⏷</a>
-            <a href="Agregarderecho.php">➕ Agregar derechohabiente</a>
-            <a href="natural.php">📌 Natural</a>
-            <a href="juridica.php">📌 Jurídica</a>
-            <a href="recibo.php">🧾 Recibo</a>
-            <a href="listado.php">📋 Listado</a>
-            <a href="reporte.php">📊 Reporte</a>
+            <a href="dashboard.php"><img src="../Image/hogarM.png" alt="Inicio"> Inicio</a>
+            <a href="derechohabiente.php"><img src="../Image/avatar1.png" alt="Tipo"> Tipo de derechohabiente ⏷</a>
+            <a href="Agregarderecho.php"><img src="../Image/nuevo-usuario.png" alt="Agregar"> Agregar derechohabiente</a>
+            <a href="natural.php"><img src="../Image/usuario1.png" alt="Natural"> Natural</a>
+            <a href="juridica.php"><img src="../Image/grandes-almacenes.png" alt="Jurídica"> Jurídica</a>
+            <a href="recibo.php"><img src="../Image/factura.png" alt="Recibo"> Recibo</a>
+            <a href="listado.php"><img src="../Image/lista.png" alt="Listado"> Listado</a>
+            <a href="reporte.php"><img src="../Image/reporte.png" alt="Reporte"> Reporte</a>
         </div>
 
-        <!-- Contenido principal -->
         <div class="content">
             <h1><?= $modo_edicion ? 'Editar' : 'Agregar' ?> Derechohabiente</h1>
-
-            <!-- Formulario para editar/agregar derechohabiente -->
             <div class="form-container">
                 <form method="POST" action="">
                     <div class="form-group">
@@ -312,7 +303,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="text" id="identificacion" name="identificacion" value="<?= htmlspecialchars($derechohabiente['identificacion']) ?>" required>
                     </div>
 
-                    <!-- Estado -->
                     <div class="form-group">
                         <label>Estado</label>
                         <select name="estado" required>
@@ -321,7 +311,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </select>
                     </div>
 
-                    <!-- Tipo de derechohabiente -->
                     <div class="form-group">
                         <label for="tipo_derecho">Tipo de derechohabiente</label>
                         <select id="tipo_derecho" name="tipo_derecho" required>
@@ -339,7 +328,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
-    <!-- Pie de página -->
     <div class="bottom-bar">
         Desarrolladores © 2025 Xenia, Ivania, Erick
     </div>

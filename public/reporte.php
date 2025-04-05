@@ -172,7 +172,7 @@ $tipo_usuario = $_SESSION['tipo_usuario'];
             <img src="logoadesco.jpg" alt="Logo de ADESCOSET" class="logo">
             <h3>Sistema de Cobro</h3>
 
-            <a href="inicio.php">
+            <a href="dashboard.php">
                 <img src="../Image/hogarM.png" alt="Inicio"> Inicio
             </a>
 
