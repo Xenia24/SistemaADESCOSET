@@ -39,18 +39,18 @@ if (isset($_POST['guardar'])) {
         $error_agregar = "Las contraseñas no coinciden.";
     } else {
         try {
-            // Cifrar la contraseña
+
             $contraseña_cifrada = password_hash($contraseña, PASSWORD_BCRYPT);
 
             $stmt = $pdo->prepare("INSERT INTO usuariosag (nombre_completo, correo, telefono, numero_dui, nombre_usuario, contraseña, estado, tipo_usuario) 
-                                   VALUES (:nombre_completo, :correo, :telefono, :numero_dui, :nombre_usuario, :contraseña, :estado, :tipo_usuario)");
+            VALUES (:nombre_completo, :correo, :telefono, :numero_dui, :nombre_usuario, :password, :estado, :tipo_usuario)");
 
             $stmt->bindParam(':nombre_completo', $nombre_completo);
             $stmt->bindParam(':correo', $correo);
             $stmt->bindParam(':telefono', $telefono);
             $stmt->bindParam(':numero_dui', $numero_dui);
             $stmt->bindParam(':nombre_usuario', $nombre_usuario);
-            $stmt->bindParam(':contraseña', $contraseña_cifrada); // Aquí se usa la contraseña cifrada
+            $stmt->bindParam(':password', $contraseña_cifrada);
             $stmt->bindParam(':estado', $estado);
             $stmt->bindParam(':tipo_usuario', $tipo_usuario);
 
@@ -438,9 +438,9 @@ if (isset($_POST['guardar'])) {
         </div>
 
         <!-- Contenido principal -->
-         
+
         <div class="content">
-        <h1>Agregar Usuario</h1>
+            <h1>Agregar Usuario</h1>
 
             <?php if (isset($success)) : ?>
                 <p class="success"><?= $success ?></p>
@@ -449,10 +449,10 @@ if (isset($_POST['guardar'])) {
             <?php endif; ?>
 
             <div class="form-container">
-            <h3 style="text-decoration: underline;">Datos Basicos</h3>
+                <h3 style="text-decoration: underline;">Datos Basicos</h3>
                 <form method="POST" action="" onsubmit="return validarContrasenas();">
                     <div class="form-row">
-                        
+
                         <div class="form-group">
                             <label for="nombre_completo">Nombre Completo</label>
                             <input type="text" id="nombre_completo" name="nombre_completo" required>
