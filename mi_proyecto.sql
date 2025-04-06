@@ -97,3 +97,18 @@ CREATE TABLE recibos (
     estado_pago ENUM('Pagado', 'No pagado', 'En mora', 'Pagado fuera de fecha') DEFAULT 'No pagado'
 );
 
+CREATE TABLE usuariosag (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nombre_completo VARCHAR(100) NOT NULL,
+    correo VARCHAR(100) NOT NULL UNIQUE,
+    telefono VARCHAR(20) NOT NULL,
+    numero_dui VARCHAR(20) NOT NULL UNIQUE,
+    nombre_usuario VARCHAR(50) NOT NULL UNIQUE,
+    contraseña VARCHAR(255) NOT NULL,  -- Almacena la contraseña cifrada
+    estado ENUM('activo', 'inactivo') NOT NULL,
+    tipo_usuario ENUM('Administrador', 'General') NOT NULL
+);
+
+
+
+

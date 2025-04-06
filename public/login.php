@@ -14,7 +14,7 @@ if (isset($_POST['submit'])) {
     if ($usuario && md5($contrasena) == $usuario['contrasena']) {
         $_SESSION['usuario_id'] = $usuario['id'];
         $_SESSION['tipo_usuario'] = $usuario['tipo_usuario'];
-        header('Location: dashboard.php');
+        header('Location: opciones.php');
         exit();
     } else {
         $error = "Correo o contraseña incorrectos";

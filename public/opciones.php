@@ -138,7 +138,7 @@
         <img src="../Image/inventario.png.png" alt="Inventario">
       </div>
       <div class="card">
-        <a href="login.php" class="option-button">Cobro</a>
+        <a href="dashboard.php" class="option-button">Cobro</a>
       </div>
     </div>
 
@@ -147,7 +147,7 @@
         <img src="../Image/cobro.png" alt="Cobro">
       </div>
       <div class="card">
-        <a href="login.php" class="option-button">Inventario</a>
+        <a href="dashboard2.php" class="option-button">Inventario</a>
       </div>
     </div>
   </div>
