@@ -2,16 +2,18 @@
 session_start();
 include('../includes/db.php');
 
+// Login
 if (isset($_POST['submit'])) {
     $correo = $_POST['correo'];
-    $contrasena = $_POST['contrasena'];
+    $contrasena = $_POST['contraseña'];
 
-    $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE correo = :correo");
+    $stmt = $pdo->prepare("SELECT * FROM usuariosag WHERE correo = :correo");
     $stmt->bindParam(':correo', $correo);
     $stmt->execute();
     $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($usuario && md5($contrasena) == $usuario['contrasena']) {
+    if ($usuario && password_verify($contrasena, $usuario['contraseña'])) {
+        // Si las contraseñas coinciden, guarda los datos en la sesión
         $_SESSION['usuario_id'] = $usuario['id'];
         $_SESSION['tipo_usuario'] = $usuario['tipo_usuario'];
         header('Location: opciones.php');
@@ -163,7 +165,7 @@ if (isset($_POST['submit'])) {
       </div>
       <div class="input-container">
         <img src="candado.png" alt="Contraseña">
-        <input type="password" name="contrasena" placeholder="Contraseña" required />
+        <input type="password" name="contraseña" placeholder="Contraseña" required />
       </div>
       <button type="submit" name="submit">Entrar</button>
       <?php if (isset($error)) { echo "<p class='error'>$error</p>"; } ?>

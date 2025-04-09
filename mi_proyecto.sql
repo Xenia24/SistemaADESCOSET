@@ -38,10 +38,10 @@ CREATE TABLE `usuarios` (
 --
 -- Volcado de datos para la tabla `usuarios`
 --
-
 INSERT INTO `usuarios` (`id`, `nombre`, `correo`, `contrasena`, `tipo_usuario`) VALUES
 (1, 'Juan Admin', 'admin@ejemplo.com', '0192023a7bbd73250516f069df18b500', 'admin'),
 (2, 'Pedro Empleado', 'empleado@ejemplo.com', 'da0f7659b41b24a826cc1673ac948843', 'empleado');
+
 
 --
 -- Índices para tablas volcadas

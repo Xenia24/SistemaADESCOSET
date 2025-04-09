@@ -2,7 +2,7 @@
 session_start();
 include('../includes/db.php'); // Incluye la conexión a la base de datos
 
-// Verificar si el formulario de login ha sido enviado
+//Verificar si el formulario de login ha sido enviado
 if (isset($_POST['submit'])) {
     $correo = $_POST['correo'];
     $contrasena = $_POST['contrasena'];
@@ -416,7 +416,7 @@ if (isset($_POST['guardar'])) {
                 <a href="Agregarderecho.php">
                     <img src="../Image/nuevo-usuario.png" alt="Agregar Usuario"> Agregar Usuario
                 </a>
-                <a href="Natural.php">
+                <a href="ListAdministrador.php">
                     <img src="../Image/usuario1.png" alt="Natural"> Administrador
                 </a>
                 <a href="juridica.php">
