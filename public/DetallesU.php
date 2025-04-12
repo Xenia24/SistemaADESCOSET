@@ -242,27 +242,30 @@ if (isset($_GET['id'])) {
     </div>
 
     <div class="container">
-        <div class="sidebar">
+    <div class="sidebar">
             <img src="logoadesco.jpg" alt="Logo de ADESCOSET" class="logo">
-            <h3>Sistema de Cobro</h3>
-            <a href="dashboard.php"><img src="../Image/hogarM.png" alt="Inicio"> Inicio</a>
-            <a href="derechohabiente.php"><img src="../Image/avatar1.png" alt="Tipo"> Tipo de derechohabiente ⏷</a>
-            <a href="Agregarderecho.php"><img src="../Image/nuevo-usuario.png" alt="Agregar"> Agregar derechohabiente</a>
-            <a href="natural.php"><img src="../Image/usuario1.png" alt="Natural"> Natural</a>
-            <a href="juridica.php"><img src="../Image/grandes-almacenes.png" alt="Jurídica"> Jurídica</a>
-            <a href="recibo.php"><img src="../Image/factura.png" alt="Recibo"> Recibo</a>
-            <a href="listado.php"><img src="../Image/lista.png" alt="Listado"> Listado</a>
-            <a href="reporte.php"><img src="../Image/reporte.png" alt="Reporte"> Reporte</a>
+            <h3>Sistema de Inventario</h3>
+            <a href="dashboard2.php"><img src="../Image/hogarM.png" alt="Inicio"> Inicio</a>
+            <a href=""><img src="../Image/avatar1.png" alt="Tipo"> Usuarios ⏷</a>
+            <a href="AgregarUsuario.php"><img src="../Image/nuevo-usuario.png" alt="Agregar"> Agregar Usuario</a>
+            <a href="ListAdministrador.php"><img src="../Image/usuario1.png" alt="Natural"> Administrador</a>
+            <a href=""><img src="../Image/grandes-almacenes.png" alt="Jurídica"> Usuario General</a>
+            <a href=""><img src="../Image/factura.png" alt="Recibo"> Categorias</a>
+            <a href=""><img src="../Image/lista.png" alt="Listado"> Productos</a>
+            <a href=""><img src="../Image/reporte.png" alt="Reporte"> Reportes</a>
         </div>
+
+        
+
 
         <div class="content">
             <div class="detalle-container">
                 <div class="detalle-header">Información de Administrador</div>
                 <div class="detalle-row">
-                    <div class="detalle-col">
+                    <!-- <div class="detalle-col">
                         <label>Código</label>
                         <div class="detalle-info"><?= htmlspecialchars($derechohabiente['id']) ?></div>
-                    </div>
+                    </div> -->
                     <div class="detalle-col">
                         <label>Nombre Completo</label>
                         <div class="detalle-info"><?= htmlspecialchars($derechohabiente['nombre_completo']) ?></div>
@@ -271,7 +274,7 @@ if (isset($_GET['id'])) {
                 </div>
                 <div class="detalle-row">
                 <div class="detalle-col">
-                        <label>Identificación:</label>
+                        <label>Correo:</label>
                         <div class="detalle-info"><?= htmlspecialchars($derechohabiente['correo']) ?></div>
                     </div>
                     <div class="detalle-col">
@@ -284,28 +287,28 @@ if (isset($_GET['id'])) {
                 </div>
                 <div class="detalle-row">
                     <div class="detalle-col">
-                        <label>Dirección</label>
+                        <label>Telefono</label>
                         <div class="detalle-info"><?= htmlspecialchars($derechohabiente['telefono']) ?></div>
                     </div>
                     <div class="detalle-col">
-                        <label>Dirección</label>
+                        <label>Numero de DUI</label>
                         <div class="detalle-info"><?= htmlspecialchars($derechohabiente['numero_dui']) ?></div>
                     </div>
                     <div class="detalle-col">
-                        <label>Nombre Completo</label>
+                        <label>Nombre Usuario</label>
                         <div class="detalle-info"><?= htmlspecialchars($derechohabiente['nombre_usuario']) ?></div>
                     </div>
                     <div class="detalle-col">
-                        <label>Tipo de derechohabiente</label>
+                        <label>Tipo de Usuario</label>
                         <div class="detalle-info"><?= htmlspecialchars(ucfirst($derechohabiente['tipo_usuario'])) ?></div>
                     </div>
                 </div>
-                <div class="detalle-row">
+                <!-- <div class="detalle-row">
                     <div class="detalle-col">
                         <label>Teléfono</label>
                         <div class="detalle-info"><?= htmlspecialchars($derechohabiente['telefono']) ?></div>
                     </div>
-                </div>
+                </div> -->
                 <a href="ListAdministrador.php" class="btn-back"><i class="fas fa-arrow-left"></i> Volver</a>
             </div>
         </div>

@@ -10,7 +10,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
 // Verificar si se está editando un registro
 $modo_edicion = false;
-$derechohabiente = [
+$Administrador = [
     'id' => '',
     'nombre_completo' => '',
     'correo' => '',
@@ -22,61 +22,68 @@ $derechohabiente = [
 ];
 
 if (isset($_GET['id'])) {
-    $codigo = $_GET['id'];
+    $id = $_GET['id'];
 
     $stmt = $pdo->prepare("SELECT * FROM usuariosag WHERE id = :id");
-    $stmt->bindParam(':id', $codigo, PDO::PARAM_INT);
+    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
-    $derechohabiente = $stmt->fetch(PDO::FETCH_ASSOC);
+    $Administrador = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($derechohabiente) {
+    if ($Administrador) {
         $modo_edicion = true;
     } else {
-        echo "<script>alert('¡No se encontró el derechohabiente!'); window.location.href='ListAdministrador.php';</script>";
+        echo "<script>alert('¡No se encontró Administrador!'); window.location.href='ListAdministrador.php';</script>";
         exit();
     }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $codigo = $_POST['id'];
+    $id = $_GET['id'];
     $nombre_completo = $_POST['nombre_completo'];
-    $direccion = $_POST['correo'];
+    $correo = $_POST['correo'];
     $telefono = $_POST['telefono'];
-    $identificacion = $_POST['numero_dui'];
+    $numero_dui = $_POST['numero_dui'];
     $nombre_usuario = $_POST['nombre_usuario'];
     $estado = $_POST['estado'];
-    $tipo_derechohabiente = $_POST['tipo_usuario'];
+    $tipo_usuario = $_POST['tipo_usuario'];
+
+    // Comprobar si es edición
+    $stmt_check = $pdo->prepare("SELECT id FROM usuariosag WHERE id = :id");
+    $stmt_check->bindParam(':id', $id, PDO::PARAM_INT);
+    $stmt_check->execute();
+    $modo_edicion = $stmt_check->fetch() ? true : false;
 
     try {
         if ($modo_edicion) {
             $stmt = $pdo->prepare("UPDATE usuariosag SET 
                                     nombre_completo = :nombre_completo,
-                                    direccion = :direccion,
+                                    correo = :correo,
                                     telefono = :telefono,
-                                    identificacion = :identificacion,
+                                    numero_dui = :numero_dui,
+                                    nombre_usuario = :nombre_usuario,
                                     estado = :estado,
-                                    tipo_derechohabiente = :tipo_derechohabiente
-                                    WHERE codigo = :codigo");
+                                    tipo_usuario = :tipo_usuario
+                                    WHERE id = :id");
 
+            $stmt->bindParam(':id', $id);
             $mensaje_exito = "¡Registro actualizado exitosamente!";
         } else {
-            $stmt = $pdo->prepare("INSERT INTO agregarderechohabiente 
-                                    (codigo, nombre_completo, identificacion, direccion, estado, telefono, tipo_derechohabiente)
-                                    VALUES (:codigo, :nombre_completo, :identificacion, :direccion, :estado, :telefono, :tipo_derechohabiente)");
-            
+            $stmt = $pdo->prepare("INSERT INTO usuariosag 
+                                    ( nombre_completo, correo, telefono, numero_dui, nombre_usuario, estado, tipo_usuario)
+                                    VALUES ( :nombre_completo, :correo, :telefono, :numero_dui, :nombre_usuario, :estado, :tipo_usuario)");
             $mensaje_exito = "¡Registro guardado exitosamente!";
         }
 
-        $stmt->bindParam(':codigo', $codigo);
         $stmt->bindParam(':nombre_completo', $nombre_completo);
-        $stmt->bindParam(':identificacion', $identificacion);
-        $stmt->bindParam(':direccion', $direccion);
-        $stmt->bindParam(':estado', $estado);
+        $stmt->bindParam(':correo', $correo);
         $stmt->bindParam(':telefono', $telefono);
-        $stmt->bindParam(':tipo_derechohabiente', $tipo_derechohabiente);
+        $stmt->bindParam(':numero_dui', $numero_dui);
+        $stmt->bindParam(':nombre_usuario', $nombre_usuario);
+        $stmt->bindParam(':estado', $estado);
+        $stmt->bindParam(':tipo_usuario', $tipo_usuario);
 
         if ($stmt->execute()) {
-            echo "<script>alert('$mensaje_exito'); window.location.href='natural.php';</script>";
+            echo "<script>alert('$mensaje_exito'); window.location.href='ListAdministrador.php';</script>";
         } else {
             echo "<script>alert('Error al guardar los cambios.');</script>";
         }
@@ -84,6 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo "<script>alert('Error: " . $e->getMessage() . "');</script>";
     }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -91,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $modo_edicion ? 'Editar' : 'Agregar' ?> Derechohabiente</title>
+    <title><?= $modo_edicion ? 'Editar' : 'Agregar' ?> Administrador</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
@@ -122,66 +130,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="top-bar">
-        <h2><?= $modo_edicion ? 'Editar' : 'Agregar' ?> Derechohabiente</h2>
+        <h2><?= $modo_edicion ? 'Editar' : 'Agregar' ?> Administrador</h2>
         <div class="admin-container">
             <a href="logout.php">Cerrar sesión</a>
         </div>
     </div>
 
     <div class="container">
-        <div class="sidebar">
+    <div class="sidebar">
             <img src="logoadesco.jpg" alt="Logo de ADESCOSET" class="logo">
-            <h3>Sistema de Cobro</h3>
-            <a href="dashboard.php"><img src="../Image/hogarM.png" alt="Inicio"> Inicio</a>
-            <a href="derechohabiente.php"><img src="../Image/avatar1.png" alt="Tipo"> Tipo de derechohabiente ⏷</a>
-            <a href="Agregarderecho.php"><img src="../Image/nuevo-usuario.png" alt="Agregar"> Agregar derechohabiente</a>
-            <a href="natural.php"><img src="../Image/usuario1.png" alt="Natural"> Natural</a>
-            <a href="juridica.php"><img src="../Image/grandes-almacenes.png" alt="Jurídica"> Jurídica</a>
-            <a href="recibo.php"><img src="../Image/factura.png" alt="Recibo"> Recibo</a>
-            <a href="listado.php"><img src="../Image/lista.png" alt="Listado"> Listado</a>
-            <a href="reporte.php"><img src="../Image/reporte.png" alt="Reporte"> Reporte</a>
+            <h3>Sistema de Inventario</h3>
+            <a href="dashboard2.php"><img src="../Image/hogarM.png" alt="Inicio"> Inicio</a>
+            <a href=""><img src="../Image/avatar1.png" alt="Tipo"> Usuarios ⏷</a>
+            <a href="AgregarUsuario.php"><img src="../Image/nuevo-usuario.png" alt="Agregar"> Agregar Usuario</a>
+            <a href="ListAdministrador.php"><img src="../Image/usuario1.png" alt="Natural"> Administrador</a>
+            <a href=""><img src="../Image/grandes-almacenes.png" alt="Jurídica"> Usuario General</a>
+            <a href=""><img src="../Image/factura.png" alt="Recibo"> Categorias</a>
+            <a href=""><img src="../Image/lista.png" alt="Listado"> Productos</a>
+            <a href=""><img src="../Image/reporte.png" alt="Reporte"> Reportes</a>
         </div>
 
         <div class="content">
-            <h1><?= $modo_edicion ? 'Editar' : 'Agregar' ?> Derechohabiente</h1>
+            <h1><?= $modo_edicion ? 'Editar' : 'Agregar' ?> Administrador</h1>
             <div class="form-container">
                 <form method="POST" action="">
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="codigo">Código</label>
                         <input type="number" id="codigo" name="codigo" value="<?= htmlspecialchars($derechohabiente['codigo']) ?>" required <?= $modo_edicion ? 'readonly' : '' ?>>
+                    </div> -->
+                    <div class="form-group">
+                        <label for="nombre_completo">Nombre Completo</label>
+                        <input type="text" id="nombre_completo" name="nombre_completo" value="<?= htmlspecialchars($Administrador['nombre_completo']) ?>" required>
                     </div>
                     <div class="form-group">
-                        <label for="nombre">Nombre Completo</label>
-                        <input type="text" id="nombre" name="nombre" value="<?= htmlspecialchars($derechohabiente['nombre_completo']) ?>" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="direccion">Dirección</label>
-                        <input type="text" id="direccion" name="direccion" value="<?= htmlspecialchars($derechohabiente['direccion']) ?>" required>
+                        <label for="correo">Dirección</label>
+                        <input type="text" id="correo" name="correo" value="<?= htmlspecialchars($Administrador['correo']) ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="telefono">Teléfono</label>
-                        <input type="text" id="telefono" name="telefono" value="<?= htmlspecialchars($derechohabiente['telefono']) ?>" required>
+                        <input type="text" id="telefono" name="telefono" value="<?= htmlspecialchars($Administrador['telefono']) ?>" required>
                     </div>
                     <div class="form-group">
-                        <label for="identificacion">Identificación</label>
-                        <input type="text" id="identificacion" name="identificacion" value="<?= htmlspecialchars($derechohabiente['identificacion']) ?>" required>
+                        <label for="numero_dui">Numero de Dui</label>
+                        <input type="text" id="numero_dui" name="numero_dui" value="<?= htmlspecialchars($Administrador['numero_dui']) ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nombre_usuario">Nombre Usuario</label>
+                        <input type="text" id="nombre_usuario" name="nombre_usuario" value="<?= htmlspecialchars($Administrador['nombre_usuario']) ?>" required>
                     </div>
                     <div class="form-group">
                         <label>Estado</label>
                         <select name="estado" required>
-                            <option value="activo" <?= $derechohabiente['estado'] == 'activo' ? 'selected' : '' ?>>Activo</option>
-                            <option value="inactivo" <?= $derechohabiente['estado'] == 'inactivo' ? 'selected' : '' ?>>Inactivo</option>
+                            <option value="activo" <?= $Administrador['estado'] == 'activo' ? 'selected' : '' ?>>Activo</option>
+                            <option value="inactivo" <?= $Administrador['estado'] == 'inactivo' ? 'selected' : '' ?>>Inactivo</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="tipo_derecho">Tipo de derechohabiente</label>
-                        <select id="tipo_derecho" name="tipo_derecho" required>
-                            <option value="natural" <?= $derechohabiente['tipo_derechohabiente'] == 'natural' ? 'selected' : '' ?>>Natural</option>
-                            <option value="juridica" <?= $derechohabiente['tipo_derechohabiente'] == 'juridica' ? 'selected' : '' ?>>Jurídica</option>
+                        <label for="tipo_usuario">Tipo de Usuario</label>
+                        <select id="tipo_usuario" name="tipo_usuario" required>
+                            <option value="Administrador" <?= $Administrador['tipo_usuario'] == 'Administrador' ? 'selected' : '' ?>>Administrador</option>
+                            <option value="General" <?= $Administrador['tipo_usuario'] == 'General' ? 'selected' : '' ?>>General</option>
                         </select>
                     </div>
                     <div class="buttons">
-                        <a href="natural.php" class="btn btn-cancel">Cancelar</a>
+                        <a href="ListAdministrador.php" class="btn btn-cancel">Cancelar</a>
                         <button type="submit" class="btn btn-save"><?= $modo_edicion ? 'Actualizar' : 'Guardar' ?></button>
                     </div>
                 </form>

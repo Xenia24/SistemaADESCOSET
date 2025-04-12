@@ -10,8 +10,8 @@ if (!isset($_SESSION['usuario_id'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
     $eliminar_id = $_POST['eliminar_id'];
 
-    $stmt = $pdo->prepare("DELETE FROM usuariosag WHERE codigo = :codigo");
-    $stmt->bindParam(':codigo', $eliminar_id, PDO::PARAM_INT);
+    $stmt = $pdo->prepare("DELETE FROM usuariosag WHERE id = :id");
+    $stmt->bindParam(':id', $eliminar_id, PDO::PARAM_INT);
 
     if ($stmt->execute()) {
         echo "<script>alert('¡Registro eliminado exitosamente!');</script>";
@@ -77,7 +77,7 @@ function obtenerDerechohabientes($pdo)
 </head>
 <body>
     <div class="top-bar">
-        <h2>Sistema de Cobro</h2>
+        <h2>Sistema de Inventario</h2>
         <div class="admin-container">
             <span class="icon">🔄</span>
             <span>Admin name 👤</span>
@@ -88,15 +88,15 @@ function obtenerDerechohabientes($pdo)
     <div class="container">
         <div class="sidebar">
             <img src="logoadesco.jpg" alt="Logo de ADESCOSET" class="logo">
-            <h3>Sistema de Cobro</h3>
+            <h3>Sistema de Inventario</h3>
             <a href="dashboard2.php"><img src="../Image/hogarM.png" alt="Inicio"> Inicio</a>
-            <a href="AgregarUsuario.php"><img src="../Image/avatar1.png" alt="Tipo"> Usuarios ⏷</a>
-            <a href="Agregarderecho.php"><img src="../Image/nuevo-usuario.png" alt="Agregar"> Agregar Usuario</a>
+            <a href=""><img src="../Image/avatar1.png" alt="Tipo"> Usuarios ⏷</a>
+            <a href="AgregarUsuario.php"><img src="../Image/nuevo-usuario.png" alt="Agregar"> Agregar Usuario</a>
             <a href="ListAdministrador.php"><img src="../Image/usuario1.png" alt="Natural"> Administrador</a>
-            <a href="juridica.php"><img src="../Image/grandes-almacenes.png" alt="Jurídica"> Usuario General</a>
-            <a href="recibo.php"><img src="../Image/factura.png" alt="Recibo"> Categorias</a>
-            <a href="listado.php"><img src="../Image/lista.png" alt="Listado"> Productos</a>
-            <a href="reporte.php"><img src="../Image/reporte.png" alt="Reporte"> Reportes</a>
+            <a href=""><img src="../Image/grandes-almacenes.png" alt="Jurídica"> Usuario General</a>
+            <a href=""><img src="../Image/factura.png" alt="Recibo"> Categorias</a>
+            <a href=""><img src="../Image/lista.png" alt="Listado"> Productos</a>
+            <a href=""><img src="../Image/reporte.png" alt="Reporte"> Reportes</a>
         </div>
 
         <div class="content">
@@ -133,8 +133,8 @@ function obtenerDerechohabientes($pdo)
                             <td>{$row['estado']}</td>
                             <td>
                                 <a href='DetallesU.php?id={$row['id']}' class='action-btn btn-view'><i class='fas fa-eye'></i></a>
-                                <a href='editarJ.php?codigo={$row['codigo']}' class='action-btn btn-edit'><i class='fas fa-edit'></i></a>
-                                <button class='action-btn btn-delete' onclick='confirmarEliminacion({$row['codigo']})'><i class='fas fa-trash-alt'></i></button>
+                                <a href='EditarU.php?id={$row['id']}' class='action-btn btn-edit'><i class='fas fa-edit'></i></a>
+                                <button class='action-btn btn-delete' onclick='confirmarEliminacion({$row['id']})'><i class='fas fa-trash-alt'></i></button>
                             </td>
                         </tr>";
                     }

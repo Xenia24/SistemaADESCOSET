@@ -172,11 +172,11 @@ $tipo_usuario = $_SESSION['tipo_usuario'];
             <img src="logoadesco.jpg" alt="Logo de ADESCOSET" class="logo">
             <h3>Sistema de Inventario</h3>
 
-            <a href="inicio.php">
+            <a href="dashboard2.php">
                 <img src="../Image/hogarM.png" alt="Inicio"> Inicio
             </a>
 
-            <a href="derechohabiente.php">
+            <a href="">
                 <img src="../Image/avatar1.png" alt="usuarios"> Usuarios ⏷
             </a>
 
@@ -184,23 +184,23 @@ $tipo_usuario = $_SESSION['tipo_usuario'];
                 <a href="AgregarUsuario.php">
                     <img src="../Image/nuevo-usuario.png" alt="Agregar Usuario"> Agregar Usuario
                 </a>
-                <a href="Natural.php">
+                <a href="">
                     <img src="../Image/usuario1.png" alt="Administradores"> Administradores
                 </a>
-                <a href="juridica.php">
+                <a href="">
                     <img src="../Image/grandes-almacenes.png" alt="Usuarios"> Usuarios
                 </a>
             </div>
 
-            <a href="recibo.php">
+            <a href="">
                 <img src="../Image/factura.png" alt="Recibo"> Categorias
             </a>
 
-            <a href="listado.php">
+            <a href="">
                 <img src="../Image/lista.png" alt="Listado"> Productos
             </a>
 
-            <a href="reporte.php">
+            <a href="">
                 <img src="../Image/reporte.png" alt="Reporte"> Reportes
             </a>
         </div>
