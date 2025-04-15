@@ -3,24 +3,54 @@ session_start();
 include('../includes/db.php');
 
 // Login
+// if (isset($_POST['submit'])) {
+//     $correo = $_POST['correo'];
+//     $contrasena = $_POST['contraseña'];
+
+//     $stmt = $pdo->prepare("SELECT * FROM usuariosag WHERE correo = :correo");
+//     $stmt->bindParam(':correo', $correo);
+//     $stmt->execute();
+//     $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+
+//     if ($usuario && password_verify($contrasena, $usuario['contraseña'])) {
+//         // Si las contraseñas coinciden, guarda los datos en la sesión
+//         $_SESSION['usuario_id'] = $usuario['id'];
+//         $_SESSION['tipo_usuario'] = $usuario['tipo_usuario'];
+//         header('Location: opciones.php');
+//         exit();
+//     } else {
+//         $error = "Correo o contraseña incorrectos";
+//     }
+// }
 if (isset($_POST['submit'])) {
-    $correo = $_POST['correo'];
-    $contrasena = $_POST['contraseña'];
+  $correo = $_POST['correo'];
+  $contrasena = $_POST['contraseña'];
 
-    $stmt = $pdo->prepare("SELECT * FROM usuariosag WHERE correo = :correo");
-    $stmt->bindParam(':correo', $correo);
-    $stmt->execute();
-    $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+  // Buscar usuario por correo
+  $stmt = $pdo->prepare("SELECT * FROM usuariosag WHERE correo = :correo");
+  $stmt->bindParam(':correo', $correo);
+  $stmt->execute();
+  $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($usuario && password_verify($contrasena, $usuario['contraseña'])) {
-        // Si las contraseñas coinciden, guarda los datos en la sesión
-        $_SESSION['usuario_id'] = $usuario['id'];
-        $_SESSION['tipo_usuario'] = $usuario['tipo_usuario'];
-        header('Location: opciones.php');
-        exit();
-    } else {
-        $error = "Correo o contraseña incorrectos";
-    }
+  // Verificar si el usuario existe y la contraseña es correcta
+  if ($usuario && password_verify($contrasena, $usuario['contraseña'])) {
+      // Guardar info del usuario en sesión
+      $_SESSION['usuario_id'] = $usuario['id'];
+      $_SESSION['tipo_usuario'] = $usuario['tipo_usuario'];
+
+      // Redirigir según el tipo de usuario
+      if ($usuario['tipo_usuario'] === 'Administrador') {
+          header('Location: opciones.php'); // Cambia esto si tienes otra vista
+      } elseif ($usuario['tipo_usuario'] === 'General') {
+          header('Location: usuarioFac.php'); // Cambia esto si tienes otra vista
+      } else {
+          $error = "Tipo de usuario no válido.";
+      }
+
+      exit();
+  } else {
+      $error = "Correo o contraseña incorrectos.";
+  }
 }
 ?>
 <!DOCTYPE html>
