@@ -20,6 +20,7 @@ if (isset($_POST['submit'])) {
     } else {
         $error = "Llenar todos los campos";
     }
+    
 }
 
 // Verificar si el formulario para agregar derechohabiente ha sido enviado

@@ -187,7 +187,7 @@ $tipo_usuario = $_SESSION['tipo_usuario'];
                 <a href="">
                     <img src="../Image/usuario1.png" alt="Administradores"> Administradores
                 </a>
-                <a href="">
+                <a href="ListGeneral.php">
                     <img src="../Image/grandes-almacenes.png" alt="Usuarios"> Usuarios
                 </a>
             </div>
