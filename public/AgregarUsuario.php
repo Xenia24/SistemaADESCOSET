@@ -92,7 +92,7 @@ if (isset($_POST['guardar'])) {
 
         .top-bar {
             width: 100%;
-            height: 60px;
+            height: 80px;
             background-color: #0097A7;
             display: flex;
             justify-content: space-between;
@@ -398,6 +398,8 @@ if (isset($_POST['guardar'])) {
         </div>
     </div>
 
+    
+
     <!-- Contenedor principal -->
     <div class="container">
         <!-- Sidebar -->
@@ -409,39 +411,39 @@ if (isset($_POST['guardar'])) {
                 <img src="../Image/hogarM.png" alt="Inicio"> Inicio
             </a>
 
-            <a href="derechohabiente.php">
-                <img src="../Image/avatar1.png" alt="Usuarios"> Usuarios ⏷
+            <a href="">
+                <img src="../Image/avatar1.png" alt="usuarios"> Usuarios ⏷
             </a>
 
             <div class="submenu">
-                <a href="Agregarderecho.php">
+                <a href="AgregarUsuario.php">
                     <img src="../Image/nuevo-usuario.png" alt="Agregar Usuario"> Agregar Usuario
                 </a>
-                <a href="ListAdministrador.php">
-                    <img src="../Image/usuario1.png" alt="Natural"> Administrador
+                <a href="">
+                    <img src="../Image/usuario1.png" alt="Administradores"> Administradores
                 </a>
-                <a href="juridica.php">
-                    <img src="../Image/grandes-almacenes.png" alt="Usuario General"> Usuario General
+                <a href="ListGeneral.php">
+                    <img src="../Image/grandes-almacenes.png" alt="Usuarios"> Usuarios
                 </a>
             </div>
 
-            <a href="recibo.php">
-                <img src="../Image/factura.png" alt="Categorias"> Categorias
+            <a href="">
+                <img src="../Image/factura.png" alt="Recibo"> Categorias
             </a>
 
-            <a href="listado.php">
-                <img src="../Image/lista.png" alt="Productos"> Productos
+            <a href="">
+                <img src="../Image/lista.png" alt="Listado"> Productos
             </a>
 
-            <a href="reporte.php">
+            <a href="">
                 <img src="../Image/reporte.png" alt="Reporte"> Reportes
             </a>
         </div>
 
-        <!-- Contenido principal -->
+         <!-- Contenido principal -->
 
-        <div class="content">
-            <h1>Agregar Usuario</h1>
+         <div class="content">
+            <h2>Agregar Usuario</h2>
 
             <?php if (isset($success)) : ?>
                 <p class="success"><?= $success ?></p>
@@ -545,6 +547,9 @@ if (isset($_POST['guardar'])) {
 
     </div>
 
+    </div>
+
+       
     <div class="bottom-bar">
         Desarrolladores © 2025 Xenia, Ivania, Erick
     </div>

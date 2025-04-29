@@ -132,8 +132,8 @@ function obtenerDerechohabientes($pdo)
                             
                             <td>{$row['estado']}</td>
                             <td>
-                                <a href='DetallesU.php?id={$row['id']}' class='action-btn btn-view'><i class='fas fa-eye'></i></a>
-                                <a href='EditarU.php?id={$row['id']}' class='action-btn btn-edit'><i class='fas fa-edit'></i></a>
+                                <a href='DetallesUG.php?id={$row['id']}' class='action-btn btn-view'><i class='fas fa-eye'></i></a>
+                                <a href='EditarUG.php?id={$row['id']}' class='action-btn btn-edit'><i class='fas fa-edit'></i></a>
                                 <button class='action-btn btn-delete' onclick='confirmarEliminacion({$row['id']})'><i class='fas fa-trash-alt'></i></button>
                             </td>
                         </tr>";
