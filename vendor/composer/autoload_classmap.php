@@ -6,6 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+<<<<<<< HEAD
     'CGIF' => $vendorDir . '/mpdf/mpdf/classes/gif.php',
     'CGIFCOLORTABLE' => $vendorDir . '/mpdf/mpdf/classes/gif.php',
     'CGIFFILEHEADER' => $vendorDir . '/mpdf/mpdf/classes/gif.php',
@@ -40,4 +41,8 @@ return array(
     'pdf_context' => $vendorDir . '/setasign/fpdi/pdf_context.php',
     'tocontents' => $vendorDir . '/mpdf/mpdf/classes/tocontents.php',
     'wmf' => $vendorDir . '/mpdf/mpdf/classes/wmf.php',
+=======
+    'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
+    'Dompdf\\Cpdf' => $vendorDir . '/dompdf/dompdf/lib/Cpdf.php',
+>>>>>>> 919dddeba74d51ea28d15252ec51fbbb73acb2a4
 );

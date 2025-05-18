@@ -431,8 +431,8 @@ if (isset($_POST['guardar'])) {
         </div>
 
         <div class="admin-container">
-            <span class="icon">🔄</span>
-            <span>Admin name 👤</span>
+            <span class="icon"></span>
+            <span><?php echo isset($_SESSION['nombre_usuario']) ? htmlspecialchars($_SESSION['nombre_usuario']) : 'Usuario'; ?> 👤</span><span></span>
             <a href="logout.php">Cerrar sesión</a>
         </div>
     </div>
