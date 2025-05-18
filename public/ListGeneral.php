@@ -348,7 +348,6 @@ function obtenerDerechohabientes($pdo)
 </head>
 <body>
     <div class="top-bar">
-<<<<<<< HEAD
         <div style="display: flex; align-items: center; gap: 10px;">
             <h2 style="margin: 0;">Sistema de Inventario</h2>
             <button id="toggleSidebarBtn" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">
@@ -359,16 +358,9 @@ function obtenerDerechohabientes($pdo)
         <div class="admin-container">
             <span class="icon">🔄</span>
             <span>Admin name 👤</span>
-=======
-        <h2>Sistema de Inventario</h2>
-         <div class="admin-container">
-            <span class="icon"></span>
-            <span><?php echo isset($_SESSION['nombre_usuario']) ? htmlspecialchars($_SESSION['nombre_usuario']) : 'Usuario'; ?> 👤</span><span></span>
->>>>>>> 919dddeba74d51ea28d15252ec51fbbb73acb2a4
             <a href="logout.php">Cerrar sesión</a>
         </div>
     </div>
-
 
     <div class="container">
     <div class="sidebar">

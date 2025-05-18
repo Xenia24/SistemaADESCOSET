@@ -1,10 +1,6 @@
 {
     "require": {
         "dompdf/dompdf": "^3.1",
-<<<<<<< HEAD
-        "mpdf/mpdf": "^6.1"
-=======
         "mpdf/mpdf": "^8.2"
->>>>>>> 919dddeba74d51ea28d15252ec51fbbb73acb2a4
     }
 }

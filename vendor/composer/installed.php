@@ -56,22 +56,14 @@
             'dev_requirement' => false,
         ),
         'mpdf/mpdf' => array(
-<<<<<<< HEAD
-            'pretty_version' => 'v6.1.3',
-            'version' => '6.1.3.0',
-            'reference' => '7f138bf7508eac895ac2c13d2509b056ac7e7e97',
-=======
             'pretty_version' => 'v8.2.5',
             'version' => '8.2.5.0',
             'reference' => 'e175b05e3e00977b85feb96a8cccb174ac63621f',
->>>>>>> 919dddeba74d51ea28d15252ec51fbbb73acb2a4
             'type' => 'library',
             'install_path' => __DIR__ . '/../mpdf/mpdf',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
-<<<<<<< HEAD
-=======
         'mpdf/psr-http-message-shim' => array(
             'pretty_version' => 'v2.0.1',
             'version' => '2.0.1.0',
@@ -126,7 +118,6 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
->>>>>>> 919dddeba74d51ea28d15252ec51fbbb73acb2a4
         'sabberworm/php-css-parser' => array(
             'pretty_version' => 'v8.8.0',
             'version' => '8.8.0.0',
@@ -137,15 +128,9 @@
             'dev_requirement' => false,
         ),
         'setasign/fpdi' => array(
-<<<<<<< HEAD
-            'pretty_version' => '1.6.2',
-            'version' => '1.6.2.0',
-            'reference' => 'a6ad58897a6d97cc2d2cd2adaeda343b25a368ea',
-=======
             'pretty_version' => 'v2.6.3',
             'version' => '2.6.3.0',
             'reference' => '67c31f5e50c93c20579ca9e23035d8c540b51941',
->>>>>>> 919dddeba74d51ea28d15252ec51fbbb73acb2a4
             'type' => 'library',
             'install_path' => __DIR__ . '/../setasign/fpdi',
             'aliases' => array(),

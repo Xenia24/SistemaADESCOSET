@@ -1,22 +1,6 @@
 <phpunit
 	bootstrap="tests/bootstrap.php"
 	colors="true"
-<<<<<<< HEAD
-	backupGlobals="false">
-
-	<testsuites>
-		<testsuite>
-			<directory suffix=".php">./tests</directory>
-		</testsuite>
-	</testsuites>
-
-	<filter>
-		<whitelist processUncoveredFilesFromWhitelist="true">
-			<file>mpdf.php</file>
-			<directory suffix=".php">classes</directory>
-		</whitelist>
-	</filter>
-=======
 	backupGlobals="false"
 	beStrictAboutTestsThatDoNotTestAnything="false">
 
@@ -35,6 +19,5 @@
 			<text outputFile="php://stdout" showOnlySummary="true"/>
 		</report>
 	</coverage>
->>>>>>> 919dddeba74d51ea28d15252ec51fbbb73acb2a4
 
 </phpunit>

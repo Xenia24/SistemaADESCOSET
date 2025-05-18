@@ -1,7 +1,4 @@
 *
 !.gitignore
-<<<<<<< HEAD
-=======
 !ttfontdata/
 !ttfontdata/.gitkeep
->>>>>>> 919dddeba74d51ea28d15252ec51fbbb73acb2a4
