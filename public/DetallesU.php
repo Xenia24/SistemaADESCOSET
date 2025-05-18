@@ -235,11 +235,12 @@ if (isset($_GET['id'])) {
     <div class="top-bar">
         <h2><i class="fas fa-info-circle"></i> Detalles Administrador</h2>
         <div class="admin-container">
-            <span class="icon">🔄</span>
-            <span>Admin name 👤</span>
+            <span class="icon"></span>
+            <span><?php echo isset($_SESSION['nombre_usuario']) ? htmlspecialchars($_SESSION['nombre_usuario']) : 'Usuario'; ?> 👤</span><span></span>
             <a href="logout.php">Cerrar sesión</a>
         </div>
     </div>
+
 
     <div class="container">
     <div class="sidebar">

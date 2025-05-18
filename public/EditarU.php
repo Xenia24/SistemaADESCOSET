@@ -131,10 +131,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="top-bar">
         <h2><?= $modo_edicion ? 'Editar' : 'Agregar' ?> Administrador</h2>
-        <div class="admin-container">
+      <div class="admin-container">
+            <span class="icon"></span>
+            <span><?php echo isset($_SESSION['nombre_usuario']) ? htmlspecialchars($_SESSION['nombre_usuario']) : 'Usuario'; ?> 👤</span><span></span>
             <a href="logout.php">Cerrar sesión</a>
         </div>
     </div>
+
 
     <div class="container">
     <div class="sidebar">
