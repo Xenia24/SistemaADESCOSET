@@ -70,9 +70,9 @@ if (isset($_POST['guardar'])) {
 
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Inventario</title>
     <style>
@@ -92,12 +92,18 @@ if (isset($_POST['guardar'])) {
 
         .top-bar {
             width: 100%;
-            height: 80px;
+            height: 60px;
             background-color: #0097A7;
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0 20px;
+            position: fixed;
+            /* ← CAMBIO AQUÍ */
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            /* Asegura que esté sobre otros elementos */
             color: white;
         }
 
@@ -140,13 +146,17 @@ if (isset($_POST['guardar'])) {
         }
 
         .sidebar {
-            width: 250px;
+            width: 230px;
             background-color: #0097A7;
             color: white;
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            bottom: 0;
+            overflow-y: auto;
         }
 
         .sidebar img.logo {
@@ -154,6 +164,11 @@ if (isset($_POST['guardar'])) {
             margin: 0 auto 20px auto;
             display: block;
             border-radius: 10px;
+        }
+
+        .sidebar h3 {
+            text-align: center;
+            margin-bottom: 15px;
         }
 
         .sidebar a {
@@ -164,6 +179,7 @@ if (isset($_POST['guardar'])) {
             gap: 10px;
             padding: 10px;
             border-radius: 5px;
+            cursor: pointer;
             transition: background 0.3s;
         }
 
@@ -188,9 +204,6 @@ if (isset($_POST['guardar'])) {
             padding: 8px;
             background-color: rgba(255, 255, 255, 0.2);
             border-radius: 5px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .submenu a:hover {
@@ -203,14 +216,16 @@ if (isset($_POST['guardar'])) {
         }
 
         .content {
-
             flex: 1;
             background-color: white;
             padding: 20px;
             border-radius: 10px;
-            margin: 20px;
-
+            margin-left: 270px;
+            /* espacio para el sidebar */
+            margin-top: 80px;
+            /* espacio para la top-bar */
         }
+
 
         .form-container {
             background: #F1F1F1;
@@ -384,19 +399,44 @@ if (isset($_POST['guardar'])) {
                 flex-direction: column;
             }
         }
+        .sidebar {
+            width: 250px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.hidden {
+            width: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .content {
+            transition: margin-left 0.3s ease;
+        }
+
+        .content.sidebar-hidden {
+            margin-left: 0;
+        }
     </style>
 </head>
 
 <body>
     <!-- Barra superior -->
     <div class="top-bar">
-        <h2>Sistema de Inventario</h2>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <h2 style="margin: 0;">Sistema de Inventario</h2>
+            <button id="toggleSidebarBtn" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
         <div class="admin-container">
             <span class="icon">🔄</span>
             <span>Admin name 👤</span>
             <a href="logout.php">Cerrar sesión</a>
         </div>
     </div>
+
 
     
 
@@ -411,15 +451,15 @@ if (isset($_POST['guardar'])) {
                 <img src="../Image/hogarM.png" alt="Inicio"> Inicio
             </a>
 
-            <a href="">
+            <a href="#" class="toggle-submenu">
                 <img src="../Image/avatar1.png" alt="usuarios"> Usuarios ⏷
             </a>
 
-            <div class="submenu">
+            <div class="submenu" id="submenu-usuarios" style="display: none;">
                 <a href="AgregarUsuario.php">
                     <img src="../Image/nuevo-usuario.png" alt="Agregar Usuario"> Agregar Usuario
                 </a>
-                <a href="">
+                <a href="ListAdministrador.php">
                     <img src="../Image/usuario1.png" alt="Administradores"> Administradores
                 </a>
                 <a href="ListGeneral.php">
@@ -427,13 +467,29 @@ if (isset($_POST['guardar'])) {
                 </a>
             </div>
 
-            <a href="">
-                <img src="../Image/factura.png" alt="Recibo"> Categorias
+
+            <a href="AgregarCat.php">
+                <img src="../Image/factura.png" alt="Categorias"> Categorias
             </a>
 
-            <a href="">
-                <img src="../Image/lista.png" alt="Listado"> Productos
+            <a href="#" class="toggle-submenu2">
+                <img src="../Image/lista.png" alt="Listado"> Productos ⏷
             </a>
+            
+
+            <div class="submenu" id="submenu-productos" style="display: none;">
+            <a href="ListProductos.php">
+                    <img src="../Image/lista.png" alt="Listado"> Lista de Productos
+                </a>
+                <a href="AgregarPro.php">
+                    <img src="../Image/lista.png" alt="Agregar Producto"> Agregar Producto
+                </a>
+                <a href="RetirarPro.php">
+                    <img src="../Image/lista.png" alt="Listado"> Retirar Productos
+                </a>
+                
+            </div>
+
 
             <a href="">
                 <img src="../Image/reporte.png" alt="Reporte"> Reportes
@@ -563,6 +619,41 @@ if (isset($_POST['guardar'])) {
                 }
             });
         }
+        
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggleLink = document.querySelector(".toggle-submenu");
+            const submenu = document.getElementById("submenu-usuarios");
+
+            toggleLink.addEventListener("click", function(e) {
+                e.preventDefault();
+                submenu.style.display = submenu.style.display === "none" ? "flex" : "none";
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+        const toggles = document.querySelectorAll(".toggle-submenu2");
+
+        toggles.forEach(function (toggle) {
+            toggle.addEventListener("click", function (e) {
+                e.preventDefault();
+                const nextSubmenu = toggle.nextElementSibling;
+                if (nextSubmenu && nextSubmenu.classList.contains("submenu")) {
+                    nextSubmenu.style.display = nextSubmenu.style.display === "none" ? "flex" : "none";
+                }
+            });
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+                const toggleBtn = document.getElementById("toggleSidebarBtn");
+                const sidebar = document.querySelector(".sidebar");
+                const content = document.querySelector(".content");
+
+                toggleBtn.addEventListener("click", () => {
+                    sidebar.classList.toggle("hidden");
+                    content.classList.toggle("sidebar-hidden");
+                });
+            });
     </script>
 </body>
 

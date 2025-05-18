@@ -16,6 +16,7 @@ $tipo_usuario = $_SESSION['tipo_usuario'];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <title>Sistema de Inventario</title>
     <style>
         * {
@@ -40,6 +41,12 @@ $tipo_usuario = $_SESSION['tipo_usuario'];
             justify-content: space-between;
             align-items: center;
             padding: 0 20px;
+            position: fixed;
+            /* ← CAMBIO AQUÍ */
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            /* Asegura que esté sobre otros elementos */
             color: white;
         }
 
@@ -51,6 +58,18 @@ $tipo_usuario = $_SESSION['tipo_usuario'];
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        .admin-container a {
+            text-decoration: none;
+            background-color: red;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+        }
+
+        .admin-container a:hover {
+            background-color: darkred;
         }
 
         .admin-container span {
@@ -70,13 +89,17 @@ $tipo_usuario = $_SESSION['tipo_usuario'];
         }
 
         .sidebar {
-            width: 250px;
+            width: 230px;
             background-color: #0097A7;
             color: white;
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            bottom: 0;
+            overflow-y: auto;
         }
 
         .sidebar img.logo {
@@ -139,10 +162,14 @@ $tipo_usuario = $_SESSION['tipo_usuario'];
             flex: 1;
             background-color: white;
             padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border-radius: 10px;
+            margin-left: 270px;
+            /* espacio para el sidebar */
+            margin-top: 80px;
+            text-align: center;
+            /* espacio para la top-bar */
         }
+        
 
         .bottom-bar {
             width: 100%;
@@ -151,19 +178,48 @@ $tipo_usuario = $_SESSION['tipo_usuario'];
             background-color: #0097A7;
             color: white;
         }
+
+        .sidebar {
+            width: 250px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.hidden {
+            width: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .content {
+            transition: margin-left 0.3s ease;
+        }
+
+        .content.sidebar-hidden {
+            margin-left: 0;
+        }
     </style>
 </head>
 
 <body>
     <!-- Barra superior -->
     <div class="top-bar">
-        <h2>Sistema de Inventario</h2>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <h2 style="margin: 0;">Sistema de Inventario</h2>
+            <button id="toggleSidebarBtn" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <span id="fecha-actual" style="margin-left: 20px; font-size: 16px;"></span>
+
+
         <div class="admin-container">
-            <span class="icon">🔄</span>
-            <span>Admin name 👤</span>
+            <?= htmlspecialchars($_SESSION['nombre_usuario'] ?? 'Usuario') ?> 👤
             <a href="logout.php">Cerrar sesión</a>
         </div>
     </div>
+
+    
+  </div>
 
     <!-- Contenedor principal -->
     <div class="container">
@@ -176,15 +232,15 @@ $tipo_usuario = $_SESSION['tipo_usuario'];
                 <img src="../Image/hogarM.png" alt="Inicio"> Inicio
             </a>
 
-            <a href="">
+            <a href="#" class="toggle-submenu">
                 <img src="../Image/avatar1.png" alt="usuarios"> Usuarios ⏷
             </a>
 
-            <div class="submenu">
+            <div class="submenu" id="submenu-usuarios" style="display: none;">
                 <a href="AgregarUsuario.php">
                     <img src="../Image/nuevo-usuario.png" alt="Agregar Usuario"> Agregar Usuario
                 </a>
-                <a href="">
+                <a href="ListAdministrador.php">
                     <img src="../Image/usuario1.png" alt="Administradores"> Administradores
                 </a>
                 <a href="ListGeneral.php">
@@ -192,13 +248,29 @@ $tipo_usuario = $_SESSION['tipo_usuario'];
                 </a>
             </div>
 
-            <a href="">
-                <img src="../Image/factura.png" alt="Recibo"> Categorias
+
+            <a href="AgregarCat.php">
+                <img src="../Image/factura.png" alt="Categorias"> Categorias
             </a>
 
-            <a href="">
-                <img src="../Image/lista.png" alt="Listado"> Productos
+            <a href="#" class="toggle-submenu2">
+                <img src="../Image/lista.png" alt="Listado"> Productos ⏷
             </a>
+            
+
+            <div class="submenu" id="submenu-productos" style="display: none;">
+            <a href="ListProductos.php">
+                    <img src="../Image/lista.png" alt="Listado"> Lista de Productos
+                </a>
+                <a href="AgregarPro.php">
+                    <img src="../Image/lista.png" alt="Agregar Producto"> Agregar Producto
+                </a>
+                <a href="RetirarPro.php">
+                    <img src="../Image/lista.png" alt="Listado"> Retirar Productos
+                </a>
+                
+            </div>
+
 
             <a href="">
                 <img src="../Image/reporte.png" alt="Reporte"> Reportes
@@ -215,6 +287,70 @@ $tipo_usuario = $_SESSION['tipo_usuario'];
     <div class="bottom-bar">
         Desarrolladores © 2025 Xenia, Ivania, Erick
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggleLink = document.querySelector(".toggle-submenu");
+            const submenu = document.getElementById("submenu-usuarios");
+
+            toggleLink.addEventListener("click", function(e) {
+                e.preventDefault();
+                submenu.style.display = submenu.style.display === "none" ? "flex" : "none";
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+        const toggles = document.querySelectorAll(".toggle-submenu2");
+
+        toggles.forEach(function (toggle) {
+            toggle.addEventListener("click", function (e) {
+                e.preventDefault();
+                const nextSubmenu = toggle.nextElementSibling;
+                if (nextSubmenu && nextSubmenu.classList.contains("submenu")) {
+                    nextSubmenu.style.display = nextSubmenu.style.display === "none" ? "flex" : "none";
+                }
+            });
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+                const toggleBtn = document.getElementById("toggleSidebarBtn");
+                const sidebar = document.querySelector(".sidebar");
+                const content = document.querySelector(".content");
+
+                toggleBtn.addEventListener("click", () => {
+                    sidebar.classList.toggle("hidden");
+                    content.classList.toggle("sidebar-hidden");
+                });
+            });
+
+            function actualizarFecha() {
+        const fechaElemento = document.getElementById("fecha-actual");
+        const fecha = new Date();
+
+        const opciones = {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        };
+
+        fechaElemento.textContent = fecha.toLocaleDateString('es-ES', opciones);
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        actualizarFecha(); // Mostrar la fecha al cargar la página
+
+        // También puedes actualizar cada día a medianoche si mantienes la página abierta
+        const ahora = new Date();
+        const msHastaMedianoche = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() + 1).getTime() - ahora.getTime();
+
+        setTimeout(() => {
+            actualizarFecha();
+            setInterval(actualizarFecha, 24 * 60 * 60 * 1000); // Actualiza cada 24 horas
+        }, msHastaMedianoche);
+    });
+    </script>
 </body>
 
 </html>

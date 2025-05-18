@@ -109,6 +109,60 @@ CREATE TABLE usuariosag (
     tipo_usuario ENUM('Administrador', 'General') NOT NULL
 );
 
+CREATE TABLE categorias (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nombre_categoria VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE productos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre_producto VARCHAR(100) NOT NULL,
+    cantidad INT NOT NULL,
+    stock INT NOT NULL DEFAULT 0,
+    precio DECIMAL(10,2) NOT NULL,
+    categoria VARCHAR(100) NOT NULL
+);
+CREATE TABLE historial_retiros (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    producto_id INT UNSIGNED,
+    usuario_id INT UNSIGNED,
+    cantidad INT NOT NULL,
+    fecha DATETIME NOT NULL,
+    FOREIGN KEY (producto_id) REFERENCES productos(id),
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+) ENGINE=InnoDB;
+
+-- -- Tabla productos
+-- CREATE TABLE productos (
+--     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+--     nombre_producto VARCHAR(100),
+--     cantidad INT,
+--     precio DECIMAL(10, 2),
+--     categoria VARCHAR(100)
+-- ) ENGINE=InnoDB;
+
+-- -- Tabla usuarios
+-- CREATE TABLE usuarios (
+--     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+--     nombre_completo VARCHAR(100),
+--     correo VARCHAR(100),
+--     telefono VARCHAR(20),
+--     numero_dui VARCHAR(20),
+--     nombre_usuario VARCHAR(50),
+--     estado VARCHAR(20),
+--     tipo_usuario VARCHAR(20)
+-- ) ENGINE=InnoDB;
+
+
+-- CREATE TABLE historial_retiros (
+--     id INT AUTO_INCREMENT PRIMARY KEY,
+--     producto_id INT,
+--     usuario_id INT,
+--     cantidad INT,
+--     fecha DATETIME,
+--     FOREIGN KEY (id) REFERENCES productos(id),
+--     FOREIGN KEY (id) REFERENCES usuarios(id)
+-- );
 
 
 
