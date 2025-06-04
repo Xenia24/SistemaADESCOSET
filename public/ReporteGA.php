@@ -1,30 +1,36 @@
 <?php
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Mpdf\Mpdf;
+
 session_start();
-include('../includes/db.php');
 
 if (!isset($_SESSION['usuario_id'])) {
     header('Location: login.php');
     exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
-    $eliminar_id = $_POST['eliminar_id'];
+include(__DIR__ . '/../includes/db.php');
 
-    $stmt = $pdo->prepare("DELETE FROM productos WHERE id = :id");
-    $stmt->bindParam(':id', $eliminar_id, PDO::PARAM_INT);
+if (isset($_GET['anio'])) {
+    $anio = $_GET['anio'];
 
-    if ($stmt->execute()) {
-        echo "<script>alert('¡Registro eliminado exitosamente!');</script>";
-    } else {
-        echo "<script>alert('Error al eliminar el registro.');</script>";
-    }
-}
-
-function obtenerProductos($pdo)
-{
-    $stmt = $pdo->prepare("SELECT * FROM productos");
+    $stmt = $pdo->prepare("
+        SELECT 
+            u.nombre_completo,
+            p.nombre_producto,
+            SUM(v.cantidad) AS total_cantidad,
+            SUM(v.total) AS total_ventas
+        FROM ventas v
+        INNER JOIN usuariosag u ON v.usuario_id = u.id
+        INNER JOIN productos p ON v.producto_id = p.id
+        WHERE YEAR(v.fecha) = :anio
+        GROUP BY u.id, p.id
+        ORDER BY total_ventas DESC
+    ");
+    $stmt->bindParam(':anio', $anio, PDO::PARAM_INT);
     $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $ventas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 ?>
 
@@ -34,10 +40,9 @@ function obtenerProductos($pdo)
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Cobro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Sistema de Inventario</title>
     <style>
-        /* Reset general */
         * {
             margin: 0;
             padding: 0;
@@ -52,7 +57,6 @@ function obtenerProductos($pdo)
             background-color: #f4f4f4;
         }
 
-        /* Barra superior */
         .top-bar {
             width: 100%;
             height: 60px;
@@ -86,22 +90,30 @@ function obtenerProductos($pdo)
             color: white;
             padding: 8px 12px;
             border-radius: 5px;
-            transition: background-color 0.3s;
         }
 
         .admin-container a:hover {
             background-color: darkred;
         }
 
-        /* Layout general */
+        .admin-container span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: bold;
+        }
+
+        .icon {
+            font-size: 18px;
+        }
+
         .container {
             display: flex;
             flex: 1;
         }
 
-        /* Barra lateral */
         .sidebar {
-            width: 230px;
+            width: 250px;
             background-color: #0097A7;
             color: white;
             padding: 20px;
@@ -113,7 +125,6 @@ function obtenerProductos($pdo)
             bottom: 0;
             overflow-y: auto;
         }
-
 
         .sidebar img.logo {
             width: 120px;
@@ -130,12 +141,13 @@ function obtenerProductos($pdo)
         .sidebar a {
             text-decoration: none;
             color: white;
-            padding: 10px;
-            border-radius: 5px;
-            transition: background 0.3s;
             display: flex;
             align-items: center;
             gap: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
         }
 
         .sidebar a:hover {
@@ -171,7 +183,6 @@ function obtenerProductos($pdo)
             height: 16px;
         }
 
-        /* Contenido principal */
         .content {
             flex: 1;
             background-color: white;
@@ -179,148 +190,12 @@ function obtenerProductos($pdo)
             border-radius: 10px;
             margin-left: 270px;
             /* espacio para el sidebar */
-            margin-top: 80px;
+            margin-top: 50px;
+            text-align: center;
             /* espacio para la top-bar */
         }
 
-        .search-container {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 15px;
-        }
 
-        .search-container input {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            width: 100%;
-            max-width: 300px;
-            outline: none;
-        }
-
-        .search-container button {
-            background-color: #0097A7;
-            border: none;
-            padding: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            color: white;
-            margin-left: 5px;
-        }
-
-        .search-container button i {
-            font-size: 16px;
-        }
-
-        /* Tabla */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            padding: 12px;
-            border: 1px solid #ccc;
-            text-align: center;
-        }
-
-        th {
-            background-color: #5cb85c;
-            color: white;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-
-        /* Botones */
-        .action-btn {
-            border: none;
-            padding: 8px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .btn-view {
-            background-color: #5bc0de;
-            color: white;
-        }
-
-        .btn-edit {
-            background-color: #5cb85c;
-            color: white;
-        }
-
-        .btn-delete {
-            background-color: #d9534f;
-            color: white;
-        }
-
-        .btn-confirm,
-        .btn-cancel {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .btn-confirm {
-            background-color: #d9534f;
-            color: white;
-        }
-
-        .btn-cancel {
-            background-color: #5bc0de;
-            color: white;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 10;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.4);
-        }
-
-        .modal-content {
-            background-color: white;
-            margin: 15% auto;
-            padding: 20px;
-            border-radius: 10px;
-            width: 400px;
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .modal-content h3 {
-            margin-bottom: 10px;
-            font-size: 20px;
-        }
-
-        .modal-content p {
-            margin-top: 10px;
-            font-size: 14px;
-            color: #888;
-        }
-
-        .modal-icon {
-            font-size: 50px;
-            color: #f39c12;
-            margin-bottom: 10px;
-        }
-
-        .modal-btns {
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-around;
-        }
-
-        /* Pie de página */
         .bottom-bar {
             width: 100%;
             text-align: center;
@@ -347,11 +222,104 @@ function obtenerProductos($pdo)
         .content.sidebar-hidden {
             margin-left: 0;
         }
-    </style>
 
+        .card {
+            width: 250px;
+            background-color: #e0f7fa;
+            border: 1px solid #b2ebf2;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            margin-top: 140px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .card i {
+            font-size: 40px;
+            color: #007c91;
+            margin-bottom: 10px;
+        }
+
+        .card h3 {
+            margin: 10px 0;
+            font-size: 18px;
+            color: #007c91;
+        }
+
+        .card p {
+            font-size: 14px;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 30px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        thead {
+            background-color: #0097A7;
+            color: white;
+        }
+
+        thead th {
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            border-right: 1px solid #007c91;
+        }
+
+        thead th:last-child {
+            border-right: none;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s;
+        }
+
+        tbody tr:hover {
+            background-color: #f1fafa;
+        }
+
+        tbody td {
+            padding: 12px 15px;
+            text-align: center;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .btn {
+            background-color: #007c91;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #005f6b;
+        }
+    </style>
 </head>
 
-<body>
+<>
+    <!-- Barra superior -->
     <div class="top-bar">
         <div style="display: flex; align-items: center; gap: 10px;">
             <h2 style="margin: 0;">Sistema de Inventario</h2>
@@ -360,13 +328,20 @@ function obtenerProductos($pdo)
             </button>
         </div>
         <span id="fecha-actual" style="margin-left: 20px; font-size: 16px;"></span>
+
+
         <div class="admin-container">
             <?= htmlspecialchars($_SESSION['nombre_usuario'] ?? 'Usuario') ?> 👤
             <a href="logout.php">Cerrar sesión</a>
         </div>
     </div>
 
+
+    </div>
+
+    <!-- Contenedor principal -->
     <div class="container">
+        <!-- Sidebar -->
         <div class="sidebar">
             <img src="logoadesco.jpg" alt="Logo de ADESCOSET" class="logo">
             <h3>Sistema de Inventario</h3>
@@ -421,105 +396,70 @@ function obtenerProductos($pdo)
             </a>
         </div>
 
+        <!-- Contenido principal -->
         <div class="content">
-            <h2>Lista de Productos</h2>
-            <div class="search-container">
-                <input type="text" id="search" placeholder="Buscar Producto por Nombre o Categoria" onkeyup="buscarProducto()">
-                <button onclick="buscarProducto()"><i class="fas fa-search"></i></button>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Stock</th>
-                        <th>Precio</th>
-                        <th>Categoria</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="tablaProductos">
-                    <?php
-                    $registros = obtenerProductos($pdo);
-                    foreach ($registros as $row) {
-                        echo "<tr>
-            <td>{$row['id']}</td>
-            <td>{$row['nombre_producto']}</td>
-            <td>{$row['cantidad']}</td>
-            <td>$ {$row['precio']}</td>
-            <td>{$row['categoria']}</td>                            
-            <td>
-                <a href='EditarPro.php?id={$row['id']}' class='action-btn btn-edit'><i class='fas fa-edit'></i></a>
-                <button class='action-btn btn-delete' onclick='confirmarEliminacion({$row['id']})'><i class='fas fa-trash-alt'></i></button>
-                <a href='CompraPro.php?id={$row['id']}' class='action-btn btn-edit'><i class='fa-solid fa-cart-shopping'></i></a>
-            </td>
-        </tr>";
-                    }
-                    ?>
-                </tbody>
-            </table>
+            <h2>Reporte de Ventas Anuales por Usuario</h2>
+
+
+            <form method="GET" style="margin-top: 10px;">
+    <label for="anio">Año:</label>
+    <select name="anio" id="anio" required>
+        <?php
+        $currentYear = date('Y');
+        for ($y = $currentYear; $y >= $currentYear - 5; $y--) {
+            $selected = (isset($_GET['anio']) && $_GET['anio'] == $y) ? 'selected' : '';
+            echo "<option value='$y' $selected>$y</option>";
+        }
+        ?>
+    </select>
+
+    <button type="submit" class="btn">Buscar</button>
+</form>
+
+
+            <?php if (isset($_GET['anio'])): ?>
+                <?php if ($ventas): ?>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Producto</th>
+                                <th>Total de Productos Vendidos</th>
+                                <th>Total en Ventas ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($ventas as $venta): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($venta['nombre_completo']) ?></td>
+                                    <td><?= htmlspecialchars($venta['nombre_producto']) ?></td>
+                                    <td><?= htmlspecialchars($venta['total_cantidad']) ?></td>
+                                    <td>$<?= number_format($venta['total_ventas'], 2) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                        <div style="text-align: right; margin-top: 20px;">
+                            <form method="GET" action="ReportePDFGA.php" target="_blank" style="display: inline-block;">
+                                <input type="hidden" name="anio" value="<?= htmlspecialchars($_GET['anio']) ?>">
+                                <button type="submit" class="btn">Exportar a PDF</button>
+                            </form>
+                        </div>
+                    </table>
+                <?php else: ?>
+                    <p style="text-align: center; margin-top: 20px;">No se encontraron ventas para el período seleccionado.</p>
+                <?php endif; ?>
+            <?php endif; ?>
+
+
         </div>
     </div>
 
-    <div id="modalEliminar" class="modal">
-        <div class="modal-content">
-            <i class="fas fa-exclamation-circle modal-icon"></i>
-            <h3>¿Estás seguro de eliminar?</h3>
-            <p>¡Esta acción no se puede deshacer!</p>
-            <div class="modal-btns">
-                <button class="btn-confirm" onclick="eliminarProductos()">Sí, eliminar</button>
-                <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- Barra inferior -->
     <div class="bottom-bar">
         Desarrolladores © 2025 Xenia, Ivania, Erick
     </div>
 
     <script>
-        let idEliminar = 0;
-
-        function confirmarEliminacion(id) {
-            idEliminar = id;
-            document.getElementById('modalEliminar').style.display = 'block';
-        }
-
-        function cerrarModal() {
-            document.getElementById('modalEliminar').style.display = 'none';
-        }
-
-        function eliminarProductos() {
-            if (idEliminar !== 0) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '';
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'eliminar_id';
-                input.value = idEliminar;
-                form.appendChild(input);
-                document.body.appendChild(form);
-                form.submit();
-            }
-        }
-
-        function buscarProducto() {
-            const input = document.getElementById('search').value.toLowerCase();
-            const filas = document.querySelectorAll("#tablaProductos tr");
-
-            filas.forEach(fila => {
-                const nombre = fila.children[1]?.textContent.toLowerCase(); // columna del nombre
-                const categoria = fila.children[4]?.textContent.toLowerCase(); // columna de categoría
-
-                if (nombre.includes(input) || categoria.includes(input)) {
-                    fila.style.display = "";
-                } else {
-                    fila.style.display = "none";
-                }
-            });
-        }
-
         document.addEventListener("DOMContentLoaded", function() {
             const toggleLink = document.querySelector(".toggle-submenu");
             const submenu = document.getElementById("submenu-usuarios");
@@ -554,7 +494,6 @@ function obtenerProductos($pdo)
                 content.classList.toggle("sidebar-hidden");
             });
         });
-        
 
         function actualizarFecha() {
             const fechaElemento = document.getElementById("fecha-actual");
@@ -582,7 +521,15 @@ function obtenerProductos($pdo)
                 setInterval(actualizarFecha, 24 * 60 * 60 * 1000); // Actualiza cada 24 horas
             }, msHastaMedianoche);
         });
+
+        function accionTarjeta(accion) {
+            alert('Seleccionaste: ' + accion);
+            // Puedes cambiar esto por una redirección:
+            // if (accion === 'Agregar Producto') {
+            //     window.location.href = 'AgregarPro.php';
+            // }
+        }
     </script>
-</body>
+    </body>
 
 </html>

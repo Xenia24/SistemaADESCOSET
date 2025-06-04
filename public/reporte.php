@@ -1,187 +1,518 @@
 <?php
-// reporte.php
+// reporte.php — reporte en español con PDF de diseño más atractivo, manteniendo la información
 
 require_once __DIR__ . '/../vendor/autoload.php';
+
 use Mpdf\Mpdf;
 
 session_start();
 if (!isset($_SESSION['usuario_id'])) {
-    header('Location: login.php');
-    exit();
+  header('Location: login.php');
+  exit();
 }
 
 include('../includes/db.php');
 
-$tipo = $_GET['tipo']  ?? 'pagados';
-$mes  = $_GET['mes']   ?? date('m');
-$anio = $_GET['anio']  ?? date('Y');
-$pdf  = isset($_GET['pdf']) && $_GET['pdf']==='1';
+// Definimos un arreglo con los meses en español (1 => 'Enero', 2 => 'Febrero', ...)
+$meses_es = [
+  1 => 'Enero',
+  2 => 'Febrero',
+  3 => 'Marzo',
+  4 => 'Abril',
+  5 => 'Mayo',
+  6 => 'Junio',
+  7 => 'Julio',
+  8 => 'Agosto',
+  9 => 'Septiembre',
+  10 => 'Octubre',
+  11 => 'Noviembre',
+  12 => 'Diciembre'
+];
 
+// Parámetros GET
+$tipo = $_GET['tipo']  ?? 'pagados';
+$mes  = intval($_GET['mes']   ?? date('m'));
+$anio = intval($_GET['anio']  ?? date('Y'));
+$pdf  = isset($_GET['pdf']) && $_GET['pdf'] === '1';
+
+// Validar que $mes esté entre 1 y 12; de lo contrario, usar mes actual
+if ($mes < 1 || $mes > 12) {
+  $mes = intval(date('m'));
+}
+
+// Construir consulta según el tipo de reporte
 switch ($tipo) {
-    case 'pagados':
-        $sql = "SELECT numero_recibo, propietario, fecha_emision, estado_pago, total
+  case 'pagados':
+    $sql = "SELECT numero_recibo, propietario, fecha_emision, estado_pago, total
                   FROM recibos
-                 WHERE estado_pago='Pagado'
-                   AND MONTH(fecha_emision)=:mes
-                   AND YEAR(fecha_emision)=:anio";
-        break;
-    case 'nopagados':
-        $sql = "SELECT numero_recibo, propietario, fecha_emision, estado_pago, total
+                 WHERE estado_pago = 'Pagado'
+                   AND MONTH(fecha_emision) = :mes
+                   AND YEAR(fecha_emision) = :anio";
+    break;
+  case 'nopagados':
+    $sql = "SELECT numero_recibo, propietario, fecha_emision, estado_pago, total
                   FROM recibos
-                 WHERE estado_pago='No pagado'
-                   AND MONTH(fecha_emision)=:mes
-                   AND YEAR(fecha_emision)=:anio";
-        break;
-    case 'despues_vencimiento':
-        $sql = "SELECT numero_recibo, propietario, fecha_emision, estado_pago, total
+                 WHERE estado_pago = 'No pagado'
+                   AND MONTH(fecha_emision) = :mes
+                   AND YEAR(fecha_emision) = :anio";
+    break;
+  case 'despues_vencimiento':
+    $sql = "SELECT numero_recibo, propietario, fecha_emision, estado_pago, total
                   FROM recibos
-                 WHERE estado_pago='Pagado'
-                   AND fecha_emision>fecha_vencimiento
-                   AND MONTH(fecha_emision)=:mes
-                   AND YEAR(fecha_emision)=:anio";
-        break;
-    case 'mora':
-        $sql = "SELECT numero_recibo, propietario, fecha_emision, estado_pago, total
+                 WHERE estado_pago = 'Pagado'
+                   AND fecha_emision > fecha_vencimiento
+                   AND MONTH(fecha_emision) = :mes
+                   AND YEAR(fecha_emision) = :anio";
+    break;
+  case 'mora':
+    $sql = "SELECT numero_recibo, propietario, fecha_emision, estado_pago, total
                   FROM recibos
-                 WHERE estado_pago='En mora'
-                   AND MONTH(fecha_emision)=:mes
-                   AND YEAR(fecha_emision)=:anio";
-        break;
-    case 'total':
-        $sql = "SELECT SUM(total) AS total_recaudado
+                 WHERE estado_pago = 'En mora'
+                   AND MONTH(fecha_emision) = :mes
+                   AND YEAR(fecha_emision) = :anio";
+    break;
+  case 'total':
+    $sql = "SELECT SUM(total) AS total_recaudado
                   FROM recibos
-                 WHERE estado_pago='Pagado'
-                   AND MONTH(fecha_emision)=:mes
-                   AND YEAR(fecha_emision)=:anio";
-        break;
-    default:
-        die('Tipo de reporte inválido');
+                 WHERE estado_pago = 'Pagado'
+                   AND MONTH(fecha_emision) = :mes
+                   AND YEAR(fecha_emision) = :anio";
+    break;
+  default:
+    die('Tipo de reporte inválido');
 }
 
 $stmt = $pdo->prepare($sql);
-$stmt->execute([':mes'=>$mes,':anio'=>$anio]);
+$stmt->execute([':mes' => $mes, ':anio' => $anio]);
 
 if ($tipo === 'total') {
-    $res = $stmt->fetch(PDO::FETCH_ASSOC);
-    $totalRecaudado = $res['total_recaudado'] ?? 0;
+  $res = $stmt->fetch(PDO::FETCH_ASSOC);
+  $totalRecaudado = $res['total_recaudado'] ?? 0;
 } else {
-    $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+// Si pidieron PDF, generarlo
 if ($pdf) {
-    $logoPath   = str_replace('\\','/', realpath(__DIR__.'/../Image/logoadesco.jpg'));
-    $faucetPath = str_replace('\\','/', realpath(__DIR__.'/../Image/grifo-de-agua.png'));
+  $logoPath   = str_replace('\\', '/', realpath(__DIR__ . '/../Image/logoadesco.jpg'));
+  $faucetPath = str_replace('\\', '/', realpath(__DIR__ . '/../Image/grifo-de-agua.png'));
+  $mpdf = new Mpdf([
+    'default_font'  => 'Roboto',
+    'margin_top'    => 50,
+    'margin_bottom' => 20,
+    'margin_left'   => 15,
+    'margin_right'  => 15,
+  ]);
 
-    $mpdf = new Mpdf([
-        'default_font'  => 'Roboto',
-        'margin_top'    => 45,
-        'margin_bottom' => 15,
-        'margin_left'   => 10,
-        'margin_right'  => 10,
-    ]);
+  // Obtenemos el nombre del mes en español
+  $mesNombreEs = $meses_es[$mes];
 
-    $header = '
-    <table width="100%" style="background:#008CBA;color:#fff;font-family:Roboto,sans-serif;">
+  // Cabecera
+  $header = '
+    <table width="100%" style="background: #0097A7; color: #fff; font-family: Roboto, sans-serif;">
       <tr>
-        <td width="25mm" style="vertical-align:middle;padding:4px;">
-          <img src="file:///'.$logoPath.'" style="width:20mm;height:20mm;border-radius:50%;" alt="Logo">
+        <td width="20mm" style="vertical-align: middle; padding: 5px;">
+          <img src="file:///' . $logoPath . '" style="width: 18mm; height: 18mm; border-radius: 50%;" alt="Logo">
         </td>
-        <td style="text-align:center;vertical-align:middle;">
-          <div style="font-size:16pt;margin-bottom:2mm;">ASOCIACIÓN DE DESARROLLO COMUNAL, SEVERO TEPEYAC (ADESCOSET)</div>
-          <div style="font-size:12pt;margin-bottom:1mm;">Colonia Severo López</div>
-          <div style="font-size:12pt;">Reporte '.htmlspecialchars(strtoupper($tipo)).' — '.DateTime::createFromFormat('!m',$mes)->format('F').' '.$anio.'</div>
+        <td style="text-align: center; vertical-align: middle;">
+          <div style="font-size: 16pt; font-weight: 700; text-transform: uppercase;">Asociación de Desarrollo Comunal, Severo Tepeyac</div>
+          <div style="font-size: 11pt; margin-top: 2px;">Colonia Severo López</div>
+          <div style="font-size: 11pt; margin-top: 4px;"><strong>Reporte ' . mb_strtoupper($tipo, 'UTF-8') . ' • ' . $mesNombreEs . ' ' . $anio . '</strong></div>
         </td>
-        <td width="15mm" style="vertical-align:middle;padding:4px;text-align:right;">
-          <img src="file:///'.$faucetPath.'" style="width:10mm;" alt="Icono Grifo">
+        <td width="20mm" style="vertical-align: middle; padding: 5px; text-align: right;">
+          <img src="file:///' . $faucetPath . '" style="width: 12mm;" alt="Ícono Grifo">
         </td>
       </tr>
     </table>';
-    $mpdf->SetHTMLHeader($header);
+  $mpdf->SetHTMLHeader($header);
 
-    $footer = '
-    <div style="background:#008CBA;color:#fff;text-align:center;
-                font-size:9pt;padding:4px 0;font-family:Roboto,sans-serif;">
-      Desarrolladores © 2025 Xenia, Ivania, Erick
+  // Pie de página
+  $footer = '
+    <div style="background: #0097A7; color: #fff; text-align: center; font-size: 9pt; padding: 4px; font-family: Roboto, sans-serif;">
+      © 2025 Xenia, Ivania, Erick
     </div>';
-    $mpdf->SetHTMLFooter($footer);
+  $mpdf->SetHTMLFooter($footer);
 
-    $html = '<div style="font-family:Roboto,sans-serif;padding:0 5mm;margin-top:12mm;">';
-    if ($tipo === 'total') {
-        $html .= '<p style="text-align:center;font-size:14pt;"><strong>Total recaudado:</strong> $'.number_format($totalRecaudado,2).'</p>';
-    } else {
-        $html .= '
-        <table width="100%" border="1" cellspacing="0" cellpadding="4"
-               style="border-collapse:collapse;font-size:10pt;font-family:Roboto,sans-serif;">
-          <thead>
-            <tr style="background:#f0f0f0;">
-              <th>N° Recibo</th>
-              <th>Propietario</th>
-              <th>Fecha Emisión</th>
-              <th>Estado</th>
-              <th style="width:25mm;">Monto</th>
-            </tr>
-          </thead>
-          <tbody>';
-        foreach ($datos as $r) {
-            $html .= '
-            <tr>
-              <td>'.htmlspecialchars($r['numero_recibo']).'</td>
-              <td>'.htmlspecialchars($r['propietario']).'</td>
-              <td>'.htmlspecialchars($r['fecha_emision']).'</td>
-              <td>'.htmlspecialchars($r['estado_pago']).'</td>
-              <td style="text-align:right;">'.number_format($r['total'],2).'</td>
-            </tr>';
-        }
-        $html .= '
-          </tbody>
-        </table>';
+  // Contenido
+  $html = '<div style="font-family: Roboto, sans-serif; margin-top: 10px; padding: 0 10px;">';
+  if ($tipo === 'total') {
+    $html .= '
+        <div style="text-align: center; margin-top: 20mm;">
+          <span style="font-size: 14pt; font-weight: 700;">Total recaudado:</span>
+          <span style="font-size: 14pt; margin-left: 5px;">$' . number_format($totalRecaudado, 2) . '</span>
+        </div>';
+  } else {
+    $html .= '
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 10pt;">
+            <thead>
+              <tr style="background: #f0f0f0; color: #333;">
+                <th style="padding: 8px; border: 1px solid #ddd;">Nº Recibo</th>
+                <th style="padding: 8px; border: 1px solid #ddd;">Propietario</th>
+                <th style="padding: 8px; border: 1px solid #ddd;">Fecha Emisión</th>
+                <th style="padding: 8px; border: 1px solid #ddd;">Estado</th>
+                <th style="padding: 8px; border: 1px solid #ddd; text-align: right;">Monto ($)</th>
+              </tr>
+            </thead>
+            <tbody>';
+    foreach ($datos as $r) {
+      $html .= '
+              <tr>
+                <td style="padding: 6px; border: 1px solid #ddd;">' . htmlspecialchars($r['numero_recibo']) . '</td>
+                <td style="padding: 6px; border: 1px solid #ddd;">' . htmlspecialchars($r['propietario']) . '</td>
+                <td style="padding: 6px; border: 1px solid #ddd;">' . htmlspecialchars($r['fecha_emision']) . '</td>
+                <td style="padding: 6px; border: 1px solid #ddd;">' . htmlspecialchars($r['estado_pago']) . '</td>
+                <td style="padding: 6px; border: 1px solid #ddd; text-align: right;">' . number_format($r['total'], 2) . '</td>
+              </tr>';
     }
-    $html .= '</div>';
+    $html .= '
+            </tbody>
+          </table>
+        </div>';
+  }
+  $html .= '</div>';
 
-    $mpdf->WriteHTML($html);
-    $mpdf->Output("reporte_{$tipo}_{$mes}_{$anio}.pdf",'D');
-    exit;
+  $mpdf->WriteHTML($html);
+  $mpdf->Output("reporte_{$tipo}_{$mes}_{$anio}.pdf", 'I');
+  exit;
 }
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Reporte – <?= ucfirst(str_replace('_',' ',$tipo)) ?></title>
+  <title>Reporte – <?= ucfirst(str_replace('_', ' ', $tipo)) ?></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
-    *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
-    body{display:flex;flex-direction:column;height:100vh;background:#f4f4f4;}
-    .top-bar{position:fixed;top:0;left:0;right:0;height:60px;background:#0097A7;color:#fff;
-             display:flex;justify-content:space-between;align-items:center;padding:0 20px;}
-    .admin-container{display:flex;align-items:center;gap:10px;}
-    .admin-container a{color:#fff;text-decoration:underline;}
-    .container{display:flex;flex:1;padding-top:60px;}
-    .sidebar{width:250px;background:#0097A7;color:#fff;padding:20px;display:flex;flex-direction:column;gap:10px;}
-    .sidebar img.logo{width:120px;margin:0 auto 20px;border-radius:10px;}
-    .sidebar a, .sidebar .toggle{color:#fff;text-decoration:none;display:flex;align-items:center;gap:10px;
-                                 padding:10px;border-radius:5px;transition:background .3s;cursor:pointer;}
-    .sidebar a:hover, .sidebar .toggle:hover{background:#007c91;}
-    .sidebar a img, .sidebar .toggle img{width:20px;height:20px;}
-    .submenu{display:none;flex-direction:column;gap:5px;padding-left:20px;}
-    .submenu.show{display:flex;}
-    .submenu a{display:flex;align-items:center;gap:8px;padding:8px;color:#fff;
-               background:rgba(255,255,255,0.2);border-radius:5px;transition:background .3s;}
-    .submenu a:hover{background:rgba(255,255,255,0.4);}
-    .content{flex:1;background:#fff;padding:20px;overflow:auto;font-family:Roboto,sans-serif;}
-    .report-filters{display:flex;gap:12px;margin-bottom:20px;align-items:center;}
-    .report-filters select{padding:6px 12px;font-size:14px;}
-    .report-filters button{border:none;background:none;cursor:pointer;font-size:14px;padding:6px 12px;
-                           display:flex;align-items:center;gap:6px;}
-    .report-filters button.pdf-btn img{width:20px;height:20px;}
-    table{width:100%;border-collapse:collapse;margin-top:10px;}
-    th,td{border:1px solid #ccc;padding:6px;font-size:12px;}
-    th{background:#0097A7;color:#fff;}
-    .bottom-bar{width:100%;text-align:center;padding:10px;background:#0097A7;color:#fff;}
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: #f4f4f4;
+      color: #333;
+    }
+
+    /* Top bar */
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: #0097A7;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 100;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    
+    .admin-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .admin-container a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 16px;
+    }
+
+    /* Main layout */
+    .container {
+      display: flex;
+      flex: 1;
+      padding-top: 50px;
+      /* espacio para la top-bar */
+      padding-bottom: 30px;
+      /* suficiente espacio para que no quede tapado por la bottom-bar */
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      background: #0097A7;
+      color: #fff;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+      /* Restauramos Arial solo para el menú lateral */
+      font-family: Arial, sans-serif;
+    }
+
+    .sidebar img.logo {
+      width: 120px;
+      margin: 0 auto 20px;
+      border-radius: 8px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .sidebar a,
+    .sidebar .toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: background 0.3s, transform 0.1s;
+      /* Aseguramos el Arial en cada enlace/toggle */
+      font-weight: 500;
+    }
+
+    .sidebar a:hover,
+    .sidebar .toggle:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateX(2px);
+    }
+
+    .sidebar a img,
+    .sidebar .toggle img {
+      width: 20px;
+      height: 20px;
+    }
+
+    .submenu {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      padding-left: 20px;
+      margin-top: 5px;
+      font-family: Arial, sans-serif;
+      /* También Arial dentro del submenu */
+    }
+
+    .submenu.show {
+      display: flex;
+    }
+
+    .submenu a {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      transition: background 0.3s, transform 0.1s;
+      font-family: Arial, sans-serif;
+      /* Arial para cada opción del submenu */
+    }
+
+    .submenu a:hover {
+      background: rgba(255, 255, 255, 0.35);
+      transform: translateX(2px);
+    }
+
+    /* Content */
+    .content {
+      flex: 1;
+      margin: 10px;
+      padding: 20px;
+      background: #fafafa;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      overflow-y: auto;
+    }
+
+    .content h2 {
+      margin-bottom: 20px;
+      font-size: 24px;
+      color: #007c91;
+      text-transform: capitalize;
+      border-bottom: 2px solid #0097A7;
+      padding-bottom: 6px;
+      font-weight: 500;
+    }
+
+    /* Tarjeta de filtros */
+    .filters-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      margin-bottom: 25px;
+      transition: box-shadow 0.3s;
+    }
+
+    .filters-card:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .filters-card label {
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .filters-card select {
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 14px;
+      background: #fff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .filters-card select:focus {
+      outline: none;
+      border-color: #0097A7;
+      box-shadow: 0 0 0 3px rgba(0, 151, 167, 0.2);
+    }
+
+    .filters-card button {
+      border: none;
+      background: #0097A7;
+      color: #fff;
+      padding: 8px 14px;
+      font-size: 14px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.3s, transform 0.1s;
+    }
+
+    .filters-card button:hover {
+      background: #007c91;
+      transform: translateY(-1px);
+    }
+
+    .filters-card button:active {
+      transform: translateY(1px);
+    }
+
+    /* Tabla moderna */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+      min-width: 600px;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    thead {
+      background: linear-gradient(90deg, #0097a7, #007c91);
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    th,
+    td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+
+    tbody tr:hover {
+      background: #f1f1f1;
+    }
+
+    th:last-child,
+    td:last-child {
+      text-align: right;
+    }
+
+    .no-data {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 16px;
+      color: #666;
+    }
+
+    .total-container {
+      text-align: center;
+      font-size: 18px;
+      margin-top: 20px;
+      font-weight: 500;
+      color: #007c91;
+    }
+
+    /* Bottom bar */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: #0097A7;
+      color: #fff;
+      text-align: center;
+      line-height: 40px;
+      font-size: 15px;
+      box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .filters-card {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .filters-card select,
+      .filters-card button {
+        width: 100%;
+      }
+
+      th,
+      td {
+        font-size: 12px;
+        padding: 10px 8px;
+      }
+
+      .content {
+        margin: 5px;
+        padding: 15px;
+      }
+    }
   </style>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
+
 <body>
+  <!-- Top bar -->
   <div class="top-bar">
     <h2>Sistema de Cobro</h2>
     <div class="admin-container">
@@ -191,6 +522,7 @@ if ($pdf) {
   </div>
 
   <div class="container">
+    <!-- Sidebar -->
     <div class="sidebar">
       <img src="../Image/logoadesco.jpg" class="logo" alt="Logo">
       <a href="dashboard.php"><img src="../Image/hogarM.png" alt=""> Inicio</a>
@@ -215,58 +547,61 @@ if ($pdf) {
       </div>
     </div>
 
+    <!-- Content -->
     <div class="content">
-      <h2>Reporte – <?= ucfirst(str_replace('_',' ',$tipo)) ?></h2>
-      <div class="report-filters">
-        <label>Mes:
-          <select id="mes">
-            <?php for($m=1;$m<=12;$m++): ?>
-            <option value="<?=sprintf('%02d',$m)?>" <?=$m==$mes?'selected':''?>>
-              <?=DateTime::createFromFormat('!m',$m)->format('F')?>
+      <h2>Reporte – <?= ucfirst(str_replace('_', ' ', $tipo)) ?></h2>
+      <div class="filters-card">
+        <label for="mes">Mes:</label>
+        <select id="mes">
+          <?php for ($m = 1; $m <= 12; $m++): ?>
+            <option value="<?= sprintf('%02d', $m) ?>" <?= $m === $mes ? 'selected' : '' ?>>
+              <?= $meses_es[$m] ?>
             </option>
-            <?php endfor; ?>
-          </select>
-        </label>
-        <label>Año:
-          <select id="anio">
-            <?php for($y=date('Y')-3;$y<=date('Y');$y++): ?>
-            <option value="<?=$y?>" <?=$y==$anio?'selected':''?>><?=$y?></option>
-            <?php endfor; ?>
-          </select>
-        </label>
-        <button id="filtrar">Filtrar</button>
-        <button id="descargar" class="pdf-btn">
-          <img src="../Image/pdf-icon.png" alt="PDF" title="Descargar PDF">
-        </button>
+          <?php endfor; ?>
+        </select>
+
+        <label for="anio">Año:</label>
+        <select id="anio">
+          <?php for ($y = date('Y') - 3; $y <= date('Y'); $y++): ?>
+            <option value="<?= $y ?>" <?= $y === $anio ? 'selected' : '' ?>><?= $y ?></option>
+          <?php endfor; ?>
+        </select>
+
+        <button id="filtrar"><i class="fas fa-filter"></i> Filtrar</button>
+        <button id="descargar"><i class="fas fa-file-pdf"></i> Descargar PDF</button>
       </div>
 
-      <?php if(isset($datos) && $datos): ?>
-      <table>
-        <thead>
-          <tr>
-            <th>N° Recibo</th>
-            <th>Propietario</th>
-            <th>Fecha Emisión</th>
-            <th>Estado</th>
-            <th>Monto</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach($datos as $r): ?>
-          <tr>
-            <td><?=htmlspecialchars($r['numero_recibo'])?></td>
-            <td><?=htmlspecialchars($r['propietario'])?></td>
-            <td><?=htmlspecialchars($r['fecha_emision'])?></td>
-            <td><?=htmlspecialchars($r['estado_pago'])?></td>
-            <td style="text-align:right;"><?=number_format($r['total'],2)?></td>
-          </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
-      <?php elseif($tipo==='total'): ?>
-      <p><strong>Total recaudado:</strong> $<?=number_format($totalRecaudado,2)?></p>
+      <?php if (isset($datos) && $datos): ?>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>N° Recibo</th>
+                <th>Propietario</th>
+                <th>Fecha Emisión</th>
+                <th>Estado</th>
+                <th>Monto ($)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($datos as $r): ?>
+                <tr>
+                  <td><?= htmlspecialchars($r['numero_recibo']) ?></td>
+                  <td><?= htmlspecialchars($r['propietario']) ?></td>
+                  <td><?= htmlspecialchars($r['fecha_emision']) ?></td>
+                  <td><?= htmlspecialchars($r['estado_pago']) ?></td>
+                  <td><?= number_format($r['total'], 2) ?></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      <?php elseif ($tipo === 'total'): ?>
+        <div class="total-container">
+          <strong>Total recaudado:</strong> $<?= number_format($totalRecaudado, 2) ?>
+        </div>
       <?php else: ?>
-      <p>No hay registros para este periodo.</p>
+        <div class="no-data">No hay registros para este periodo.</div>
       <?php endif; ?>
     </div>
   </div>
@@ -276,19 +611,25 @@ if ($pdf) {
   </div>
 
   <script>
+    // Toggle submenús
     document.querySelectorAll('.toggle').forEach(btn =>
       btn.onclick = () => btn.nextElementSibling.classList.toggle('show')
     );
+    // Filtrar sin recargar formulario
     document.getElementById('filtrar').onclick = () => {
-      const t = '<?=$tipo?>', m = document.getElementById('mes').value,
-            a = document.getElementById('anio').value;
+      const t = '<?= $tipo ?>',
+        m = document.getElementById('mes').value,
+        a = document.getElementById('anio').value;
       location.href = `reporte.php?tipo=${t}&mes=${m}&anio=${a}`;
     };
+    // Descargar PDF en nueva pestaña
     document.getElementById('descargar').onclick = () => {
-      const t = '<?=$tipo?>', m = document.getElementById('mes').value,
-            a = document.getElementById('anio').value;
-      location.href = `reporte.php?tipo=${t}&mes=${m}&anio=${a}&pdf=1`;
+      const t = '<?= $tipo ?>',
+        m = document.getElementById('mes').value,
+        a = document.getElementById('anio').value;
+      window.open(`reporte.php?tipo=${t}&mes=${m}&anio=${a}&pdf=1`, '_blank');
     };
   </script>
 </body>
+
 </html>

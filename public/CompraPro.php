@@ -1,75 +1,61 @@
 <?php
 session_start();
-include('../includes/db.php'); // Conexión a la base de datos
+include('../includes/db.php');
 
-// Verificar si el usuario está autenticado
 if (!isset($_SESSION['usuario_id'])) {
     header('Location: login.php');
     exit();
 }
 
-// Verificar si se está editando un registro
-$modo_edicion = false;
-$Administrador = [
-    'id'             => '',
-    'nombre_producto'=> '',
-    'precio'         => '',
-    'categoria'      => '',
+// Obtener detalles del producto
+$producto = [
+    'id' => '',
+    'nombre_producto' => '',
+    'categoria' => '',
+    'precio' => ''
 ];
 
 if (isset($_GET['id'])) {
     $id = $_GET['id'];
-
     $stmt = $pdo->prepare("SELECT * FROM productos WHERE id = :id");
     $stmt->bindParam(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
-    $Administrador = $stmt->fetch(PDO::FETCH_ASSOC);
+    $producto = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($Administrador) {
-        $modo_edicion = true;
-    } else {
-        echo "<script>alert('¡No se encontró el Producto!'); window.location.href='ListProductos.php';</script>";
+    if (!$producto) {
+        echo "<script>alert('¡Producto no encontrado!'); window.location.href='ListProductos.php';</script>";
         exit();
     }
+} else {
+    echo "<script>alert('ID de producto no proporcionado.'); window.location.href='ListProductos.php';</script>";
+    exit();
 }
 
+// Procesar compra
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id              = $_GET['id'];
-    $nombre_producto = $_POST['nombre_producto'];
-    $precio          = $_POST['precio'];
-    $categoria       = $_POST['categoria'];
-
-    // Comprobar si es edición
-    $stmt_check = $pdo->prepare("SELECT id FROM productos WHERE id = :id");
-    $stmt_check->bindParam(':id', $id, PDO::PARAM_INT);
-    $stmt_check->execute();
-    $modo_edicion = $stmt_check->fetch() ? true : false;
+    $cantidad     = $_POST['cantidad'];
+    $fecha_compra = $_POST['fecha_compra'];
 
     try {
-        if ($modo_edicion) {
-            $stmt = $pdo->prepare("UPDATE productos SET 
-                                    nombre_producto = :nombre_producto,
-                                    precio          = :precio,
-                                    categoria       = :categoria
-                                   WHERE id = :id");
-            $stmt->bindParam(':id', $id);
-            $mensaje_exito = "¡Registro actualizado exitosamente!";
-        } else {
-            $stmt = $pdo->prepare("INSERT INTO productos 
-                                   (nombre_producto, precio, categoria)
-                                    VALUES (:nombre_producto, :precio, :categoria)");
-            $mensaje_exito = "¡Registro guardado exitosamente!";
-        }
+        // Registrar la compra
+        $stmt = $pdo->prepare("INSERT INTO compras 
+            (producto_id, cantidad_comprada, precio, categoria, fecha_compra)
+            VALUES (:producto_id, :cantidad_comprada, :precio, :categoria, :fecha_compra)");
 
-        $stmt->bindParam(':nombre_producto', $nombre_producto);
-        $stmt->bindParam(':precio', $precio);
-        $stmt->bindParam(':categoria', $categoria);
+        $stmt->bindParam(':producto_id', $producto['id'], PDO::PARAM_INT);
+        $stmt->bindParam(':cantidad_comprada', $cantidad, PDO::PARAM_INT);
+        $stmt->bindParam(':precio', $producto['precio']);
+        $stmt->bindParam(':categoria', $producto['categoria']);
+        $stmt->bindParam(':fecha_compra', $fecha_compra);
+        $stmt->execute();
 
-        if ($stmt->execute()) {
-            echo "<script>alert('$mensaje_exito'); window.location.href='ListProductos.php';</script>";
-        } else {
-            echo "<script>alert('Error al guardar los cambios.');</script>";
-        }
+        // Actualizar la cantidad sumando la nueva compra
+        $updateStmt = $pdo->prepare("UPDATE productos SET cantidad = cantidad + :cantidad WHERE id = :id");
+        $updateStmt->bindParam(':cantidad', $cantidad, PDO::PARAM_INT);
+        $updateStmt->bindParam(':id', $producto['id'], PDO::PARAM_INT);
+        $updateStmt->execute();
+
+        echo "<script>alert('¡Compra registrada y cantidad actualizada exitosamente!'); window.location.href='ListProductos.php';</script>";
     } catch (PDOException $e) {
         echo "<script>alert('Error: " . $e->getMessage() . "');</script>";
     }
@@ -78,10 +64,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?= $modo_edicion ? 'Editar' : 'Agregar' ?> Producto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comprar Producto – Sistema de Inventario</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     /* === Reset y base === */
@@ -97,31 +84,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       min-height: 100vh;
       background-color: #f4f4f4;
     }
-    label {
-      font-weight: bold;
-      display: block;
-    }
-    input, select {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
 
-    /* === Top Bar === */
+    /* === Barra superior fija === */
     .top-bar {
-      width: 100%;
-      height: 60px;
-      background-color: #0097A7;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 20px;
       position: fixed;
       top: 0;
       left: 0;
-      z-index: 1000;
+      right: 0;
+      height: 60px;
+      background-color: #0097A7;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
       color: white;
+      z-index: 1000;
     }
     .top-bar h2 {
       font-size: 18px;
@@ -130,6 +107,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       display: flex;
       align-items: center;
       gap: 10px;
+    }
+    .admin-container span {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: bold;
     }
     .admin-container a {
       text-decoration: none;
@@ -143,15 +126,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       background-color: darkred;
     }
 
-    /* === Contenedor General === */
+    /* === Contenedor general === */
     .container {
       display: flex;
       flex: 1;
-      padding-top: 60px;   /* espacio para top-bar */
-      padding-bottom: 60px;/* espacio para bottom-bar */
+      padding-top: 60px;   /* espacio para barra superior */
+      padding-bottom: 60px; /* espacio para barra inferior */
     }
 
-    /* === Sidebar (sin cambios) === */
+    /* === Sidebar (sin modificar funcionalidad) === */
     .sidebar {
       width: 250px;
       background-color: #0097A7;
@@ -164,12 +147,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       left: 0;
       bottom: 0;
       overflow-y: auto;
+      transition: width 0.3s ease;
     }
     .sidebar img.logo {
-       width: 120px;
-            margin: 0 auto 20px auto;
-            display: block;
-            border-radius: 10px;
+      width: 120px;
+      margin: 0 auto 20px auto;
+      border-radius: 10px;
+    }
+    .sidebar h3 {
+      text-align: center;
+      margin-bottom: 15px;
     }
     .sidebar a {
       text-decoration: none;
@@ -189,116 +176,145 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       height: 20px;
     }
     .submenu {
-      display: flex;
+      display: none;
       flex-direction: column;
       gap: 5px;
       padding-left: 20px;
       margin-top: 8px;
-
+    }
+    .submenu.show {
+      display: flex;
     }
     .submenu a {
       font-size: 14px;
       padding: 8px;
-      background-color: rgba(255,255,255,0.2);
+      background-color: rgba(255, 255, 255, 0.2);
       border-radius: 5px;
+      color: #fff;
+      text-decoration: none;
       display: flex;
       align-items: center;
       gap: 8px;
-      color: #fff;
-      text-decoration: none;
       transition: background 0.3s;
     }
     .submenu a:hover {
-      background-color: rgba(255,255,255,0.4);
+      background-color: rgba(255, 255, 255, 0.4);
     }
     .submenu a img {
       width: 16px;
       height: 16px;
     }
 
-    /* === Contenido Principal === */
+    /* === Contenido principal === */
     .content {
       flex: 1;
       background-color: white;
-      margin: 0 20px;
-      margin-left: 270px; /* espacio para el sidebar */
-      margin-top: -5px;   /* espacio para la top-bar */
+      margin-left: 270px; /* espacio para sidebar */
+      margin-right: 20px;
+      margin-top: -5px;   /* espacio para barra superior */
       border-radius: 10px;
       overflow-y: auto;
-
-      /* Centrar la tarjeta vertical y horizontalmente */
       display: flex;
       justify-content: center;
       align-items: center;
       padding: 20px;
+      text-align: center;
+      transition: margin-left 0.3s ease;
     }
     .content.sidebar-hidden {
       margin-left: 20px;
     }
 
-    /* === Ajuste del formulario === */
-    .form-container {
-      background: #F1F1F1;
-      padding: 20px;
+    /* === “Tarjeta” de compra === */
+    .purchase-card {
+      background: #fff;
+      padding: 30px;
       border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       width: 100%;
-      max-width: 450px;   /* menor ancho para que no quede muy alargado */
+      max-width: 450px;
+      border: 2px solid #0097A7;
     }
-    .form-container h1 {
-      font-size: 1.4rem;
-      margin-bottom: 15px;
+    .purchase-card h2 {
+      font-size: 1.6rem;
+      margin-bottom: 20px;
       color: #0097A7;
-      text-align: center;
     }
-    .form-row {
+    .purchase-card form {
       display: flex;
       flex-direction: column;
       gap: 15px;
+      text-align: left;
     }
-    .form-group label {
+    .purchase-card label {
       font-weight: bold;
-      margin-bottom: 5px;
+      color: #37474F;
+      margin-bottom: 6px;
     }
-    .form-group input,
-    .form-group select {
-      padding: 8px;
+    .purchase-card input[type="text"],
+    .purchase-card input[type="number"],
+    .purchase-card input[type="datetime-local"] {
+      padding: 10px 12px;
       border: 1px solid #ccc;
-      border-radius: 5px;
+      border-radius: 6px;
+      font-size: 15px;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .buttons {
+    .purchase-card input:focus {
+      outline: none;
+      border-color: #0097A7;
+      box-shadow: 0 0 6px rgba(0, 151, 167, 0.3);
+    }
+    .purchase-card input[disabled] {
+      background-color: #e9ecef;
+      color: #6c757d;
+      cursor: not-allowed;
+    }
+    .purchase-card .btn-group {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
+      gap: 12px;
       margin-top: 20px;
     }
-    .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
+    .purchase-card button,
+    .purchase-card a {
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 15px;
       cursor: pointer;
-    }
-    .btn-save {
-      background-color: #0097A7;
-      color: white;
-    }
-    .btn-cancel {
-      background-color: red;
-      color: white;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      transition: background-color 0.2s, transform 0.1s;
     }
-    .btn-cancel:hover {
-      background-color: darkred;
+    .purchase-card button {
+      background-color: #0097A7;
+      color: #fff;
+      border: none;
+    }
+    .purchase-card button:hover {
+      background-color: #007c91;
+      transform: translateY(-2px);
+    }
+    .purchase-card a {
+      background: #f1f1f1;
+      color: #0097A7;
+      border: 2px solid #0097A7;
+    }
+    .purchase-card a:hover {
+      background-color: #0097A7;
+      color: #fff;
     }
 
-    /* === Footer === */
+    /* === Barra inferior fija === */
     .bottom-bar {
-      position: fixed;
+      
       bottom: 0;
       left: 0;
       right: 0;
-      height: 60px;
+      padding: 10px;
       background-color: #0097A7;
       color: white;
       display: flex;
@@ -307,42 +323,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     /* === Responsive === */
-    @media (max-width: 768px) {
+    @media (max-width: 600px) {
       .content {
         padding: 10px;
       }
-      .form-container {
+      .purchase-card {
         max-width: 100%;
-      }
-      .buttons {
-        flex-direction: column;
-      }
-      .buttons .btn {
-        width: 100%;
-        margin-bottom: 10px;
       }
     }
   </style>
 </head>
 
 <body>
-  <!-- Barra superior (sin cambios) -->
+  <!-- Barra superior (sin modificar funcionalidad) -->
   <div class="top-bar">
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <h2 style="margin: 0;">Sistema de Inventario</h2>
-      <button id="toggleSidebarBtn" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">
-        <i class="fas fa-bars"></i>
-      </button>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <h2 style="margin: 0;">Sistema de Inventario</h2>
+            <button id="toggleSidebarBtn" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <span id="fecha-actual" style="margin-left: 20px; font-size: 16px;"></span>
+        <div class="admin-container">
+            <?= htmlspecialchars($_SESSION['nombre_usuario'] ?? 'Usuario') ?> 👤
+            <a href="logout.php">Cerrar sesión</a>
+        </div>
     </div>
-    <span id="fecha-actual" style="margin-left: 20px; font-size: 16px;"></span>
-    <div class="admin-container">
-      <?= htmlspecialchars($_SESSION['nombre_usuario'] ?? 'Usuario') ?> 👤
-      <a href="logout.php">Cerrar sesión</a>
-    </div>
-  </div>
 
   <div class="container">
-    <!-- Sidebar (sin cambios) -->
+    <!-- Sidebar (sin modificar funcionalidad) -->
     <div class="sidebar">
             <img src="logoadesco.jpg" alt="Logo de ADESCOSET" class="logo">
             <h3>Sistema de Inventario</h3>
@@ -396,60 +405,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <img src="../Image/reporte.png" alt="Reporte"> Reportes
             </a>
         </div>
-    <!-- Contenido principal (formulario centrado) -->
+
+    <!-- Contenido principal (diseño actualizado, funcionalidad de fecha y menú intacta) -->
     <div class="content">
-      <div class="form-container">
-        <h1><?= $modo_edicion ? 'Editar Producto' : 'Agregar Producto' ?></h1>
-        <form method="POST" action="">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="nombre_producto">Nombre Producto</label>
-              <input type="text" id="nombre_producto" name="nombre_producto"
-                     value="<?= htmlspecialchars($Administrador['nombre_producto']) ?>" required>
-            </div>
-            <div class="form-group">
-              <label for="categoria">Categoría</label>
-              <select id="categoria" name="categoria" required>
-                <?php
-                try {
-                  $stmt = $pdo->query("SELECT nombre_categoria FROM categorias");
-                  while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    $cat = $row['nombre_categoria'];
-                    $selected = ($Administrador['categoria'] === $cat) ? 'selected' : '';
-                    echo "<option value=\"" . htmlspecialchars($cat) . "\" $selected>"
-                         . htmlspecialchars($cat) . "</option>";
-                  }
-                } catch (PDOException $e) {
-                  echo "<option>Error al cargar categorías</option>";
-                }
-                ?>
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="precio">Precio</label>
-              <input type="number" id="precio" name="precio" min="0.01" step="0.01"
-                     value="<?= htmlspecialchars($Administrador['precio']) ?>" required>
-            </div>
-          </div>
-          <div class="buttons">
-            <a href="ListProductos.php" class="btn btn-cancel">Cancelar</a>
-            <button type="submit" class="btn btn-save"><?= $modo_edicion ? 'Actualizar' : 'Guardar' ?></button>
+      <div class="purchase-card">
+        <h2>Comprar Producto</h2>
+        <form method="POST">
+          <label>Producto:</label>
+          <input type="text" value="<?= htmlspecialchars($producto['nombre_producto']) ?>" disabled>
+
+          <label>Categoría:</label>
+          <input type="text" value="<?= htmlspecialchars($producto['categoria']) ?>" disabled>
+
+          <label>Precio:</label>
+          <input type="text" value="<?= htmlspecialchars($producto['precio']) ?>" disabled>
+
+          <label for="cantidad">Cantidad a comprar:</label>
+          <input type="number" name="cantidad" id="cantidad" min="1" required>
+
+          <label for="fecha_compra">Fecha de compra:</label>
+          <input type="datetime-local" name="fecha_compra" id="fecha_compra" required>
+
+          <div class="btn-group">
+            <a href="ListProductos.php">Cancelar</a>
+            <button type="submit">Realizar Compra</button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- Barra inferior fija (sin cambios) -->
+  <!-- Barra inferior (sin modificar funcionalidad) -->
   <div class="bottom-bar">
     Desarrolladores © 2025 Xenia, Ivania, Erick
   </div>
 
   <script>
-    // Alternar submenú Usuarios
-    document.addEventListener("DOMContentLoaded", function() {
+     document.addEventListener("DOMContentLoaded", function() {
             const toggleLink = document.querySelector(".toggle-submenu");
             const submenu = document.getElementById("submenu-usuarios");
 
@@ -472,19 +464,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 });
             });
         });
-    // Alternar sidebar completo
-    document.addEventListener("DOMContentLoaded", function() {
-                const toggleBtn = document.getElementById("toggleSidebarBtn");
-                const sidebar = document.querySelector(".sidebar");
-                const content = document.querySelector(".content");
 
-                toggleBtn.addEventListener("click", () => {
-                    sidebar.classList.toggle("hidden");
-                    content.classList.toggle("sidebar-hidden");
-                });
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggleBtn = document.getElementById("toggleSidebarBtn");
+            const sidebar = document.querySelector(".sidebar");
+            const content = document.querySelector(".content");
+
+            toggleBtn.addEventListener("click", () => {
+                sidebar.classList.toggle("hidden");
+                content.classList.toggle("sidebar-hidden");
             });
-    // Mostrar fecha actual en top-bar
-   function actualizarFecha() {
+        });
+
+        function actualizarFecha() {
             const fechaElemento = document.getElementById("fecha-actual");
             const fecha = new Date();
 

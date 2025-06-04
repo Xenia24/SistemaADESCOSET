@@ -102,6 +102,9 @@ if (isset($_GET['editar_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://common.olemiss.edu/_js/sweet-alert/sweet-alert.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <title>Sistema de Inventario</title>
     <style>
         /* Reset general */
@@ -233,6 +236,7 @@ if (isset($_GET['editar_id'])) {
             flex-direction: column;
             gap: 5px;
             padding-left: 20px;
+            margin-top: 8px;
         }
 
         .submenu a {
@@ -563,7 +567,7 @@ if (isset($_GET['editar_id'])) {
                 flex-direction: column;
             }
         }
-        
+
 
         .sidebar {
             width: 250px;
@@ -583,6 +587,7 @@ if (isset($_GET['editar_id'])) {
         .content.sidebar-hidden {
             margin-left: 0;
         }
+
         .botones-acciones {
             display: flex;
             justify-content: center;
@@ -601,10 +606,9 @@ if (isset($_GET['editar_id'])) {
                 <i class="fas fa-bars"></i>
             </button>
         </div>
-
+        <span id="fecha-actual" style="margin-left: 20px; font-size: 16px;"></span>
         <div class="admin-container">
-            <span class="icon">🔄</span>
-            <span>Admin name 👤</span>
+            <?= htmlspecialchars($_SESSION['nombre_usuario'] ?? 'Usuario') ?> 👤
             <a href="logout.php">Cerrar sesión</a>
         </div>
     </div>
@@ -620,19 +624,20 @@ if (isset($_GET['editar_id'])) {
             </a>
 
             <a href="#" class="toggle-submenu">
-                <img src="../Image/avatar1.png" alt="usuarios"> Usuarios ⏷
+                <i class="fa-solid fa-users"></i> Usuarios ⏷
             </a>
 
             <div class="submenu" id="submenu-usuarios" style="display: none;">
                 <a href="AgregarUsuario.php">
-                    <img src="../Image/nuevo-usuario.png" alt="Agregar Usuario"> Agregar Usuario
+                    <i class="fa-solid fa-user-plus"></i> Agregar Usuario
                 </a>
                 <a href="ListAdministrador.php">
-                    <img src="../Image/usuario1.png" alt="Administradores"> Administradores
+                    <i class="fa-solid fa-user-tie"></i> Administradores
                 </a>
                 <a href="ListGeneral.php">
-                    <img src="../Image/grandes-almacenes.png" alt="Usuarios"> Usuarios
+                    <i class="fa-solid fa-user-group"></i> Generales
                 </a>
+
             </div>
 
 
@@ -641,35 +646,32 @@ if (isset($_GET['editar_id'])) {
             </a>
 
             <a href="#" class="toggle-submenu2">
-                <img src="../Image/lista.png" alt="Listado"> Productos ⏷
+                <i class="fa-solid fa-truck"></i> Productos ⏷
             </a>
 
 
             <div class="submenu" id="submenu-productos" style="display: none;">
                 <a href="ListProductos.php">
-                    <img src="../Image/lista.png" alt="Listado"> Lista de Productos
+                    <i class="fa-solid fa-clipboard-list"></i> Lista de Productos
                 </a>
                 <a href="AgregarPro.php">
-                    <img src="../Image/lista.png" alt="Agregar Producto"> Agregar Producto
+                    <i class="fa-solid fa-circle-plus"></i> Agregar Producto
                 </a>
-                <a href="">
-                    <img src="../Image/lista.png" alt="Listado"> Retirar Productos
+                <a href="RetirarPro.php">
+                    <i class="fa-solid fa-cart-plus"></i> Retirar Productos
                 </a>
 
             </div>
 
 
-            <a href="">
+            <a href="Reportes.php">
                 <img src="../Image/reporte.png" alt="Reporte"> Reportes
             </a>
         </div>
-
         <!-- Contenido principal -->
-
         <div class="content">
             <h2>Agregar Categoría</h2>
-
-            <?php if (isset($_GET['success'])): ?>
+            <!-- <?php if (isset($_GET['success'])): ?>
                 <?php if ($_GET['success'] == 'updated'): ?>
                     <p class="success">¡Categoría actualizada exitosamente!</p>
                 <?php elseif ($_GET['success'] == 'created'): ?>
@@ -677,12 +679,12 @@ if (isset($_GET['editar_id'])) {
                 <?php endif; ?>
             <?php elseif (isset($error_agregar)): ?>
                 <p class="error"><?= $error_agregar ?></p>
-            <?php endif; ?>
+            <?php endif; ?> -->
 
 
             <div class="form-container">
                 <!-- <form method="POST" action=""> -->
-                    <form method="POST" action="" id="formCategoria">
+                <form method="POST" action="" id="formCategoria">
                     <div class="form-group">
                         <label for="nombre_categoria">Nombre de la Categoría</label>
                         <input type="text" id="nombre_categoria" name="nombre_categoria" value="<?= htmlspecialchars($nombre_categoria) ?>" required>
@@ -700,9 +702,8 @@ if (isset($_GET['editar_id'])) {
             </div>
             <div class="content2">
                 <h2>Lista de Categorías</h2>
-
                 <div class="search-container">
-                    <input type="text" id="searchCategoria" placeholder="Buscar Categoría" onkeyup="buscarCategoria()">
+                    <input type="text" id="search" placeholder="Buscar Categoria" onkeyup="buscarCategoria()">
                     <button onclick="buscarCategoria()"><i class="fas fa-search"></i></button>
                 </div>
 
@@ -745,104 +746,136 @@ if (isset($_GET['editar_id'])) {
                 <h3>¿Estás seguro de eliminar?</h3>
                 <p>¡Esta acción no se puede deshacer!</p>
                 <div class="modal-btns">
-                    <button class="btn-confirm" onclick="eliminarDerechohabiente()">Sí, eliminar</button>
+                    <button class="btn-confirm" onclick="eliminarCategoria()">Sí, eliminar</button>
                     <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
                 </div>
             </div>
         </div>
+    </div>
+    <script>
+        // Mostrar SweetAlert si la categoría fue creada exitosamente
+        <?php if (isset($_GET['success']) && $_GET['success'] == 'created'): ?>
+        Swal.fire({
+            icon: 'success',
+            title: '¡Categoría guardada exitosamente!',
+            showConfirmButton: false,
+            timer: 1800
+        });
+        <?php endif; ?>
 
+        let idEliminar = 0;
 
-
-        <script>
-            let idEliminar = 0;
-
-            function confirmarEliminacion(id) {
-                idEliminar = id;
-                document.getElementById('modalEliminar').style.display = 'block';
-            }
-
-            function cerrarModal() {
-                document.getElementById('modalEliminar').style.display = 'none';
-            }
-
-            function eliminarDerechohabiente() {
-                if (idEliminar !== 0) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = '';
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'eliminar_id';
-                    input.value = idEliminar;
-                    form.appendChild(input);
-                    document.body.appendChild(form);
-                    form.submit();
-                }
-            }
-
-            function buscarDerechohabiente() {
-                let input = document.getElementById("search").value.toLowerCase();
-                let rows = document.querySelectorAll("#tablaDerechohabientes tr");
-                rows.forEach(row => {
-                    let nombre = row.cells[1].innerText.toLowerCase();
-                    row.style.display = nombre.includes(input) ? "" : "none";
-                });
-            }
-
-            document.addEventListener("DOMContentLoaded", function() {
-                const toggleLink = document.querySelector(".toggle-submenu");
-                const submenu = document.getElementById("submenu-usuarios");
-
-                toggleLink.addEventListener("click", function(e) {
-                    e.preventDefault();
-                    submenu.style.display = submenu.style.display === "none" ? "flex" : "none";
-                });
-            });
-
-            document.addEventListener("DOMContentLoaded", function() {
-                const toggles = document.querySelectorAll(".toggle-submenu2");
-
-                toggles.forEach(function(toggle) {
-                    toggle.addEventListener("click", function(e) {
-                        e.preventDefault();
-                        const nextSubmenu = toggle.nextElementSibling;
-                        if (nextSubmenu && nextSubmenu.classList.contains("submenu")) {
-                            nextSubmenu.style.display = nextSubmenu.style.display === "none" ? "flex" : "none";
-                        }
-                    });
-                });
-            });
-
-            document.addEventListener("DOMContentLoaded", function() {
-                const toggleBtn = document.getElementById("toggleSidebarBtn");
-                const sidebar = document.querySelector(".sidebar");
-                const content = document.querySelector(".content");
-
-                toggleBtn.addEventListener("click", () => {
-                    sidebar.classList.toggle("hidden");
-                    content.classList.toggle("sidebar-hidden");
-                });
-            });
-
-             document.getElementById('btnCancelar').addEventListener('click', function () {
-        // Limpiar campo oculto si está presente
-        const campoEditar = document.querySelector('input[name="editar_id"]');
-        if (campoEditar) {
-            campoEditar.value = '';
+        function confirmarEliminacion(id) {
+            idEliminar = id;
+            document.getElementById('modalEliminar').style.display = 'block';
         }
 
-        // Limpiar también el campo de texto manualmente (opcional si no funciona bien con reset)
-        document.getElementById('nombre_categoria').value = '';
-    });
-        </script>
+        function cerrarModal() {
+            document.getElementById('modalEliminar').style.display = 'none';
+        }
 
+        function eliminarCategoria() {
+            if (idEliminar !== 0) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '';
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'eliminar_id';
+                input.value = idEliminar;
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
 
+        function buscarCategoria() {
+            const input = document.getElementById('search').value.toLowerCase();
+            const filas = document.querySelectorAll("#tablaCategorias tr");
 
-    </div>
+            filas.forEach(fila => {
+                const nombre = fila.children[1].textContent.toLowerCase();
+                if (nombre.includes(input)) {
+                    fila.style.display = "";
+                } else {
+                    fila.style.display = "none";
+                }
+            });
+        }
 
-    </div>
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggleLink = document.querySelector(".toggle-submenu");
+            const submenu = document.getElementById("submenu-usuarios");
 
+            toggleLink.addEventListener("click", function(e) {
+                e.preventDefault();
+                submenu.style.display = submenu.style.display === "none" ? "flex" : "none";
+            });
+        });
 
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggles = document.querySelectorAll(".toggle-submenu2");
+
+            toggles.forEach(function(toggle) {
+                toggle.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    const nextSubmenu = toggle.nextElementSibling;
+                    if (nextSubmenu && nextSubmenu.classList.contains("submenu")) {
+                        nextSubmenu.style.display = nextSubmenu.style.display === "none" ? "flex" : "none";
+                    }
+                });
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggleBtn = document.getElementById("toggleSidebarBtn");
+            const sidebar = document.querySelector(".sidebar");
+            const content = document.querySelector(".content");
+
+            toggleBtn.addEventListener("click", () => {
+                sidebar.classList.toggle("hidden");
+                content.classList.toggle("sidebar-hidden");
+            });
+        });
+
+        document.getElementById('btnCancelar').addEventListener('click', function() {
+            // Limpiar campo oculto si está presente
+            const campoEditar = document.querySelector('input[name="editar_id"]');
+            if (campoEditar) {
+                campoEditar.value = '';
+            }
+
+            // Limpiar también el campo de texto manualmente (opcional si no funciona bien con reset)
+            document.getElementById('nombre_categoria').value = '';
+        });
+
+        function actualizarFecha() {
+            const fechaElemento = document.getElementById("fecha-actual");
+            const fecha = new Date();
+
+            const opciones = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            };
+
+            fechaElemento.textContent = fecha.toLocaleDateString('es-ES', opciones);
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            actualizarFecha(); // Mostrar la fecha al cargar la página
+
+            // También puedes actualizar cada día a medianoche si mantienes la página abierta
+            const ahora = new Date();
+            const msHastaMedianoche = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() + 1).getTime() - ahora.getTime();
+
+            setTimeout(() => {
+                actualizarFecha();
+                setInterval(actualizarFecha, 24 * 60 * 60 * 1000); // Actualiza cada 24 horas
+            }, msHastaMedianoche);
+        });
+    </script>
     <div class="bottom-bar">
         Desarrolladores © 2025 Xenia, Ivania, Erick
     </div>

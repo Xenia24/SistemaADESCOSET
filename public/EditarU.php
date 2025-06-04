@@ -109,224 +109,263 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         box-sizing: border-box;
         font-family: Arial, sans-serif;
     }
-
     body {
         display: flex;
         flex-direction: column;
-        height: 100vh;
-        background-color: #f4f4f4;
+        min-height: 100vh;
+        background-color: #E0F7FA;
     }
-
     label {
         font-weight: bold;
         display: block;
+        margin-bottom: 6px;
+        color: #37474F;
     }
-
     input, select {
         width: 100%;
-        padding: 8px;
+        padding: 10px 12px;
         border: 1px solid #ccc;
-        border-radius: 5px;
+        border-radius: 6px;
+        transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus, select:focus {
+        outline: none;
+        border-color: #0097A7;
+        box-shadow: 0 0 0 3px rgba(0,151,167,0.2);
     }
 
     /* === Top Bar === */
     .top-bar {
-            width: 100%;
-            height: 60px;
-            background-color: #0097A7;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-            position: fixed;
-            /* ← CAMBIO AQUÍ */
-            top: 0;
-            left: 0;
-            z-index: 1000;
-            /* Asegura que esté sobre otros elementos */
-            color: white;
-        }
-
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background-color: #0097A7;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+        color: white;
+        z-index: 1000;
+    }
     .top-bar h2 {
         font-size: 18px;
     }
-
     .admin-container {
         display: flex;
         align-items: center;
         gap: 10px;
     }
-
     .admin-container a {
         text-decoration: none;
-        background-color: red;
         color: white;
         padding: 8px 12px;
         border-radius: 5px;
-        transition: background-color 0.3s;
+        transition: background-color .2s;
     }
-
-    .admin-container a:hover {
-        background-color: darkred;
-    }
+    
 
     /* === Layout General === */
     .container {
         display: flex;
         flex: 1;
+        margin-top: 60px; /* espacio para la top-bar fija */
+        margin-bottom: 60px; /* espacio para la bottom-bar fija */
     }
 
-    /* === Sidebar === */
+    /* === Sidebar (sin cambios de funcionalidad) === */
     .sidebar {
-            width: 230px;
-            background-color: #0097A7;
-            color: white;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 60px;
-            left: 0;
-            bottom: 0;
-            overflow-y: auto;
-        }
-
+        width: 250px;
+        background-color: #0097A7;
+        color: white;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 60px;
+        left: 0;
+        bottom: 0;
+        overflow-y: auto;
+        transition: width .3s ease;
+    }
+    .sidebar.hidden {
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+    }
     .sidebar img.logo {
-            width: 120px;
-            margin: 0 auto 20px auto;
-            display: block;
-            border-radius: 10px;
-        }
-
+        width: 120px;
+        margin: 0 auto 20px auto;
+        display: block;
+        border-radius: 10px;
+    }
     .sidebar h3 {
         text-align: center;
         margin-bottom: 15px;
     }
-
-    .sidebar a {
+    .sidebar a, .sidebar .toggle {
         text-decoration: none;
         color: white;
-        padding: 10px;
-        border-radius: 5px;
         display: flex;
         align-items: center;
         gap: 10px;
-        transition: background 0.3s;
+        padding: 10px;
+        border-radius: 5px;
+        transition: background .3s;
+        cursor: pointer;
     }
-
-    .sidebar a:hover {
+    .sidebar a:hover, .sidebar .toggle:hover {
         background-color: #007c91;
     }
-
-    .sidebar a img {
+    .sidebar a img, .toggle img {
         width: 20px;
         height: 20px;
     }
-    /* --- */
+    .submenu {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        padding-left: 20px;
+        margin-top: 8px;
 
-    .sidebar a:hover {
-            background-color: #007c91;
-        }
+    }
+    .submenu.show {
+        display: flex;
+    }
+    .submenu a {
+        font-size: 14px;
+        padding: 8px;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #fff;
+        text-decoration: none;
+        transition: background .3s;
+    }
+    .submenu a:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+    }
+    .submenu a img {
+        width: 16px;
+        height: 16px;
+    }
 
-        .submenu {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            padding-left: 20px;
-        }
-
-        .submenu a {
-            font-size: 14px;
-            padding: 8px;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .submenu a:hover {
-            background-color: rgba(255, 255, 255, 0.4);
-        }
-
-        .submenu a img {
-            width: 16px;
-            height: 16px;
-        }
     /* === Contenido Principal === */
     .content {
-            flex: 1;
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-left: 270px;
-            /* espacio para el sidebar */
-            margin-top: 80px;
-            /* espacio para la top-bar */
-        }
-
-    /* === Formularios === */
-    .form-container {
-        background: #F1F1F1;
+        flex: 1;
+        background-color: #fff;
+        margin-left: 270px; /* espacio para el sidebar */
+        margin-right: 20px;
         padding: 20px;
         border-radius: 10px;
+        overflow-y: auto;
+        transition: margin-left .3s ease;
+    }
+    .content.sidebar-hidden {
+        margin-left: 20px;
     }
 
+    /* === Diseño “tarjeta + grid” para formulario === */
+    .form-card {
+        background: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        max-width: 700px;
+        width: 100%;
+        border: 2px solid #0097A7;
+        margin: 0 auto;
+        margin-top: 60px;
+    }
+    .form-card h1 {
+        font-size: 1.6rem;
+        margin-bottom: 20px;
+        color: #0097A7;
+        text-align: center;
+    }
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
+        gap: 20px;
+    }
     .form-group {
-        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
     }
-
+    .form-group label {
+        margin-bottom: 6px;
+        font-weight: bold;
+        color: #37474F;
+    }
+    .form-group input,
+    .form-group select {
+        padding: 10px 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        transition: border-color .2s, box-shadow .2s;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #0097A7;
+        box-shadow: 0 0 0 3px rgba(0,151,167,0.2);
+    }
     .buttons {
         display: flex;
-        justify-content: space-between;
-        margin-top: 20px;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 30px;
     }
-
     .btn {
-        padding: 10px 20px;
+        padding: 12px 24px;
         border: none;
-        border-radius: 5px;
+        border-radius: 6px;
         cursor: pointer;
+        transition: transform .1s, box-shadow .1s;
     }
-
     .btn-save {
-        background-color: #0097A7;
-        color: white;
+        background: #0097A7;
+        color: #fff;
     }
-
     .btn-cancel {
-        background-color: red;
-        color: white;
+        background: red;
+        color: #fff;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.12);
     }
 
     /* === Footer === */
     .bottom-bar {
-        width: 100%;
-        text-align: center;
-        padding: 10px;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
         background-color: #0097A7;
-        color: white;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
-    .sidebar {
-            width: 250px;
-            transition: all 0.3s ease;
-        }
 
-        .sidebar.hidden {
-            width: 0;
-            padding: 0;
-            overflow: hidden;
-        }
-
-        .content {
-            transition: margin-left 0.3s ease;
-        }
-
-        .content.sidebar-hidden {
-            margin-left: 0;
-        }
-</style>
-
+    @media (max-width: 600px) {
+      .buttons {
+        flex-direction: column;
+      }
+      .btn {
+        width: 100%;
+      }
+    }
+    </style>
 </head>
 <body>
     <div class="top-bar">
@@ -336,156 +375,142 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <i class="fas fa-bars"></i>
             </button>
         </div>
-
+        <span id="fecha-actual" style="font-size: 16px;"></span>
         <div class="admin-container">
-            <span class="icon">🔄</span>
-            <span>Admin name 👤</span>
+            <?= htmlspecialchars($_SESSION['nombre_usuario'] ?? 'Usuario') ?> 👤
             <a href="logout.php">Cerrar sesión</a>
         </div>
     </div>
 
     <div class="container">
-    <div class="sidebar">
-            <img src="logoadesco.jpg" alt="Logo de ADESCOSET" class="logo">
+        <div class="sidebar">
+            <img src="../Image/logoadesco.jpg" class="logo" alt="Logo ADESCOSET">
             <h3>Sistema de Inventario</h3>
 
-            <a href="dashboard2.php">
-                <img src="../Image/hogarM.png" alt="Inicio"> Inicio
-            </a>
+            <a href="dashboard2.php"><img src="../Image/hogarM.png" alt="Inicio"> Inicio</a>
 
             <a href="#" class="toggle-submenu">
-                <img src="../Image/avatar1.png" alt="usuarios"> Usuarios ⏷
+               <i class="fa-solid fa-users"></i> Usuarios ⏷
             </a>
-
-            <div class="submenu" id="submenu-usuarios" style="display: none;">
+            <div class="submenu" id="submenu-usuarios">
                 <a href="AgregarUsuario.php">
-                    <img src="../Image/nuevo-usuario.png" alt="Agregar Usuario"> Agregar Usuario
+                     <i class="fa-solid fa-user-plus"></i> Agregar Usuario
                 </a>
                 <a href="ListAdministrador.php">
-                    <img src="../Image/usuario1.png" alt="Administradores"> Administradores
+                    <i class="fa-solid fa-user-tie"></i> Administradores
                 </a>
                 <a href="ListGeneral.php">
-                    <img src="../Image/grandes-almacenes.png" alt="Usuarios"> Usuarios
+                    <i class="fa-solid fa-user-group"></i> Generales
                 </a>
             </div>
 
-
-            <a href="AgregarCat.php">
-                <img src="../Image/factura.png" alt="Categorias"> Categorias
-            </a>
+            <a href="AgregarCat.php"><img src="../Image/factura.png" alt="Categorias"> Categorias</a>
 
             <a href="#" class="toggle-submenu2">
-                <img src="../Image/lista.png" alt="Listado"> Productos ⏷
+                <i class="fa-solid fa-truck"></i> Productos ⏷
             </a>
-
-
-            <div class="submenu" id="submenu-productos" style="display: none;">
+            <div class="submenu" id="submenu-productos">
                 <a href="ListProductos.php">
-                    <img src="../Image/lista.png" alt="Listado"> Lista de Productos
+                     <i class="fa-solid fa-clipboard-list"></i> Lista de Productos
                 </a>
                 <a href="AgregarPro.php">
-                    <img src="../Image/lista.png" alt="Agregar Producto"> Agregar Producto
+                    <i class="fa-solid fa-circle-plus"></i> Agregar Producto
                 </a>
-                <a href="">
-                    <img src="../Image/lista.png" alt="Listado"> Retirar Productos
+                <a href="RetirarPro.php">
+                    <i class="fa-solid fa-cart-plus"></i> Retirar Productos
                 </a>
-
             </div>
 
-
-            <a href="">
-                <img src="../Image/reporte.png" alt="Reporte"> Reportes
-            </a>
+            <a href="Reportes.php"><img src="../Image/reporte.png" alt="Reporte"> Reportes</a>
         </div>
 
         <div class="content">
+          <div class="form-card">
             <h1><?= $modo_edicion ? 'Editar' : 'Agregar' ?> Administrador</h1>
-            <div class="form-container">
-                <form method="POST" action="">
-                    <!-- <div class="form-group">
-                        <label for="codigo">Código</label>
-                        <input type="number" id="codigo" name="codigo" value="<?= htmlspecialchars($derechohabiente['codigo']) ?>" required <?= $modo_edicion ? 'readonly' : '' ?>>
-                    </div> -->
-                    <div class="form-group">
-                        <label for="nombre_completo">Nombre Completo</label>
-                        <input type="text" id="nombre_completo" name="nombre_completo" value="<?= htmlspecialchars($Administrador['nombre_completo']) ?>" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="correo">Dirección</label>
-                        <input type="text" id="correo" name="correo" value="<?= htmlspecialchars($Administrador['correo']) ?>" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="telefono">Teléfono</label>
-                        <input type="text" id="telefono" name="telefono" value="<?= htmlspecialchars($Administrador['telefono']) ?>" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="numero_dui">Numero de Dui</label>
-                        <input type="text" id="numero_dui" name="numero_dui" value="<?= htmlspecialchars($Administrador['numero_dui']) ?>" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="nombre_usuario">Nombre Usuario</label>
-                        <input type="text" id="nombre_usuario" name="nombre_usuario" value="<?= htmlspecialchars($Administrador['nombre_usuario']) ?>" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Estado</label>
-                        <select name="estado" required>
-                            <option value="activo" <?= $Administrador['estado'] == 'activo' ? 'selected' : '' ?>>Activo</option>
-                            <option value="inactivo" <?= $Administrador['estado'] == 'inactivo' ? 'selected' : '' ?>>Inactivo</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="tipo_usuario">Tipo de Usuario</label>
-                        <select id="tipo_usuario" name="tipo_usuario" required>
-                            <option value="Administrador" <?= $Administrador['tipo_usuario'] == 'Administrador' ? 'selected' : '' ?>>Administrador</option>
-                            <option value="General" <?= $Administrador['tipo_usuario'] == 'General' ? 'selected' : '' ?>>General</option>
-                        </select>
-                    </div>
-                    <div class="buttons">
-                        <a href="ListAdministrador.php" class="btn btn-cancel">Cancelar</a>
-                        <button type="submit" class="btn btn-save"><?= $modo_edicion ? 'Actualizar' : 'Guardar' ?></button>
-                    </div>
-                </form>
-            </div>
+            <form method="POST" action="">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="nombre_completo">Nombre Completo</label>
+                  <input type="text" id="nombre_completo" name="nombre_completo" value="<?= htmlspecialchars($Administrador['nombre_completo']) ?>" required>
+                </div>
+                <div class="form-group">
+                  <label for="correo">Correo</label>
+                  <input type="text" id="correo" name="correo" value="<?= htmlspecialchars($Administrador['correo']) ?>" required>
+                </div>
+                <div class="form-group">
+                  <label for="telefono">Teléfono</label>
+                  <input type="text" id="telefono" name="telefono" value="<?= htmlspecialchars($Administrador['telefono']) ?>" required>
+                </div>
+                <div class="form-group">
+                  <label for="numero_dui">Número de DUI</label>
+                  <input type="text" id="numero_dui" name="numero_dui" value="<?= htmlspecialchars($Administrador['numero_dui']) ?>" required>
+                </div>
+                <div class="form-group">
+                  <label for="nombre_usuario">Nombre de Usuario</label>
+                  <input type="text" id="nombre_usuario" name="nombre_usuario" value="<?= htmlspecialchars($Administrador['nombre_usuario']) ?>" required>
+                </div>
+                <div class="form-group">
+                  <label for="estado">Estado</label>
+                  <select id="estado" name="estado" required>
+                    <option value="activo" <?= $Administrador['estado'] === 'activo' ? 'selected' : '' ?>>Activo</option>
+                    <option value="inactivo" <?= $Administrador['estado'] === 'inactivo' ? 'selected' : '' ?>>Inactivo</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="tipo_usuario">Tipo de Usuario</label>
+                  <select id="tipo_usuario" name="tipo_usuario" required>
+                    <option value="Administrador" <?= $Administrador['tipo_usuario'] === 'Administrador' ? 'selected' : '' ?>>Usuario Administrador</option>
+                    <option value="General Cobro" <?= $Administrador['tipo_usuario'] === 'General Cobro' ? 'selected' : '' ?>>Usuario General de Cobros</option>
+                    <option value="General Inventario" <?= $Administrador['tipo_usuario'] === 'General Inventario' ? 'selected' : '' ?>>Usuario General de Inventario</option>
+                  </select>
+                </div>
+              </div>
+              <div class="buttons">
+                <a href="ListAdministrador.php" class="btn btn-cancel">Cancelar</a>
+                <button type="submit" class="btn btn-save"><?= $modo_edicion ? 'Actualizar' : 'Guardar' ?></button>
+              </div>
+            </form>
+          </div>
         </div>
     </div>
-<script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const toggleLink = document.querySelector(".toggle-submenu");
-            const submenu = document.getElementById("submenu-usuarios");
 
-            toggleLink.addEventListener("click", function(e) {
-                e.preventDefault();
-                submenu.style.display = submenu.style.display === "none" ? "flex" : "none";
-            });
-        });
-
-        document.addEventListener("DOMContentLoaded", function () {
-        const toggles = document.querySelectorAll(".toggle-submenu2");
-
-        toggles.forEach(function (toggle) {
-            toggle.addEventListener("click", function (e) {
-                e.preventDefault();
-                const nextSubmenu = toggle.nextElementSibling;
-                if (nextSubmenu && nextSubmenu.classList.contains("submenu")) {
-                    nextSubmenu.style.display = nextSubmenu.style.display === "none" ? "flex" : "none";
-                }
-            });
-        });
-    });
-
-    document.addEventListener("DOMContentLoaded", function() {
-                const toggleBtn = document.getElementById("toggleSidebarBtn");
-                const sidebar = document.querySelector(".sidebar");
-                const content = document.querySelector(".content");
-
-                toggleBtn.addEventListener("click", () => {
-                    sidebar.classList.toggle("hidden");
-                    content.classList.toggle("sidebar-hidden");
-                });
-            });
-    </script>
     <div class="bottom-bar">
         Desarrolladores © 2025 Xenia, Ivania, Erick
     </div>
+
+    <script>
+      // Alternar visibilidad del submenú Usuarios
+      document.querySelector('.toggle-submenu').addEventListener('click', () => {
+        document.getElementById('submenu-usuarios').classList.toggle('show');
+      });
+      // Alternar visibilidad del submenú Productos
+      document.querySelector('.toggle-submenu2').addEventListener('click', () => {
+        document.getElementById('submenu-productos').classList.toggle('show');
+      });
+      // Alternar visibilidad del sidebar completo
+      document.getElementById('toggleSidebarBtn').addEventListener('click', () => {
+        document.querySelector('.sidebar').classList.toggle('hidden');
+        document.querySelector('.content').classList.toggle('sidebar-hidden');
+      });
+      // Mostrar fecha actual en la top-bar
+      function actualizarFecha() {
+        const fechaElemento = document.getElementById('fecha-actual');
+        const fecha = new Date();
+        const opciones = {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        };
+        fechaElemento.textContent = fecha.toLocaleDateString('es-ES', opciones);
+      }
+      actualizarFecha();
+      const ahora = new Date();
+      const msHastaMedianoche = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() + 1).getTime() - ahora.getTime();
+      setTimeout(() => {
+        actualizarFecha();
+        setInterval(actualizarFecha, 24 * 60 * 60 * 1000);
+      }, msHastaMedianoche);
+    </script>
 </body>
 </html>

@@ -63,7 +63,7 @@ $registros = obtenerDerechohabientes($pdo);
     }
     .top-bar a {
       color: #fff;
-      text-decoration: underline;
+      text-decoration: none;
     }
     .container {
       display: flex;
@@ -250,35 +250,25 @@ $registros = obtenerDerechohabientes($pdo);
   <div class="container">
     <div class="sidebar">
       <img src="../Image/logoadesco.jpg" class="logo" alt="Logo ADESCOSET">
-
-      <a href="dashboard.php">
-        <img src="../Image/hogarM.png" alt=""> Inicio
-      </a>
-
-      <div class="toggle">
-        <img src="../Image/avatar1.png" alt=""> Tipo de derechohabiente ⏷
-      </div>
+      <a href="dashboard.php"><img src="../Image/hogarM.png" alt=""> Inicio</a>
+      <div class="toggle"><img src="../Image/avatar1.png" alt=""> Tipo de derechohabiente ⏷</div>
       <div class="submenu">
-        <a href="Agregarderecho.php">
-          <img src="../Image/nuevo-usuario.png" alt=""> Agregar derechohabiente
-        </a>
-        <a href="Natural.php">
-          <img src="../Image/usuario1.png" alt=""> Natural
-        </a>
-        <a href="juridica.php">
-          <img src="../Image/grandes-almacenes.png" alt=""> Jurídica
-        </a>
+        <a href="Agregarderecho.php"><img src="../Image/nuevo-usuario.png" alt=""> Agregar derechohabiente</a>
+        <a href="natural.php"><img src="../Image/usuario1.png" alt=""> Natural</a>
+        <a href="juridica.php"><img src="../Image/grandes-almacenes.png" alt=""> Jurídica</a>
       </div>
-
-      <a href="recibo.php">
-        <img src="../Image/factura.png" alt=""> Recibo
-      </a>
-      <a href="listado.php">
-        <img src="../Image/lista.png" alt=""> Listado
-      </a>
-      <a href="reporte.php">
-        <img src="../Image/reporte.png" alt=""> Reporte
-      </a>
+      <a href="recibo.php"><img src="../Image/factura.png" alt=""> Recibo</a>
+      <a href="listado.php"><img src="../Image/lista.png" alt=""> Listado</a>
+      <div class="toggle" id="toggle-reporte">
+        <img src="../Image/reporte.png" alt=""> Reporte ⏷
+      </div>
+      <div class="submenu" id="submenu-reporte">
+        <a href="reporte.php?tipo=pagados">Recibos pagados</a>
+        <a href="reporte.php?tipo=nopagados">No pagados</a>
+        <a href="reporte.php?tipo=despues_vencimiento">Pagados tras venc.</a>
+        <a href="reporte.php?tipo=mora">En mora</a>
+        <a href="reporte.php?tipo=total">Total recaudado</a>
+      </div>
     </div>
 
     <div class="content">
@@ -339,6 +329,10 @@ $registros = obtenerDerechohabientes($pdo);
   <script>
     document.querySelector('.toggle').addEventListener('click', ()=>{
       document.querySelector('.submenu').classList.toggle('show');
+    });
+
+    document.getElementById('toggle-reporte').addEventListener('click', () => {
+      document.getElementById('submenu-reporte').classList.toggle('show');
     });
     let idEliminar = 0;
     function confirmarEliminacion(id){

@@ -8,461 +8,447 @@ if (!isset($_SESSION['usuario_id'])) {
     exit();
 }
 
-// Verificar si se envió el parámetro 'codigo' desde el icono de ver
+// Verificar si se envió el parámetro 'id' desde el icono de ver
 if (isset($_GET['id'])) {
     $codigo = $_GET['id'];
 
-    // Obtener datos del derechohabiente JURÍDICO desde la base de datos
-    $stmt = $pdo->prepare("SELECT * FROM usuariosag WHERE id = :id AND tipo_usuario = 'General'");
+    // Obtener datos del usuario general (cobro o inventario) desde la base de datos
+    $stmt = $pdo->prepare("
+        SELECT * 
+        FROM usuariosag 
+        WHERE id = :id 
+          AND tipo_usuario IN ('General Cobro', 'General Inventario')
+    ");
     $stmt->bindParam(':id', $codigo, PDO::PARAM_INT);
     $stmt->execute();
 
     $derechohabiente = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Si no encuentra el derechohabiente jurídico, mostrar mensaje de error
+    // Si no encuentra el usuario, mostrar mensaje de error
     if (!$derechohabiente) {
-        echo "<script>alert('¡No se encontró información para el Usuario seleccionado!'); window.location.href='ListAdministrador.php';</script>";
+        echo "<script>
+                alert('¡No se encontró información para el Usuario seleccionado!');
+                window.location.href='ListAdministrador.php';
+              </script>";
         exit();
     }
 } else {
-    echo "<script>alert('Código no recibido.'); window.location.href='ListAdministrador.php';</script>";
+    echo "<script>
+            alert('Código no recibido.');
+            window.location.href='ListAdministrador.php';
+          </script>";
     exit();
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalle Derechohabiente Jurídico</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Detalle Usuario General – Sistema de Cobro</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    /* ----------------------------------------
+       RESET Y ESTILOS GENERALES
+    ---------------------------------------- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background-color: #E0F7FA;
+    }
 
-        body {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            background-color: #f4f4f4;
-        }
+    /* ----------------------------------------
+       BARRA SUPERIOR FIJA
+    ---------------------------------------- */
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: #0097A7;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      color: #fff;
+      z-index: 100;
+    }
+    .top-bar h2 {
+      font-size: 18px;
+    }
+    .top-bar a {
+      color: #fff;
+      text-decoration: underline;
+    }
 
-        .top-bar {
-            width: 100%;
-            height: 60px;
-            background-color: #0097A7;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-            position: fixed;
-            /* ← CAMBIO AQUÍ */
-            top: 0;
-            left: 0;
-            z-index: 1000;
-            /* Asegura que esté sobre otros elementos */
-            color: white;
-        }
+    /* ----------------------------------------
+       CONTENEDOR PRINCIPAL
+    ---------------------------------------- */
+    .container {
+      display: flex;
+      flex: 1;
+      margin-top: 60px; /* espacio para la top-bar */
+      margin-bottom: 60px; /* espacio para la bottom-bar */
+    }
 
-        .top-bar h2 {
-            font-size: 18px;
-        }
-
-        .admin-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .admin-container a {
-            text-decoration: none;
-            background-color: red;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-
-        .admin-container a:hover {
-            background-color: darkred;
-        }
-
-        .container {
-            display: flex;
-            flex: 1;
-        }
-
-         .sidebar {
-            width: 230px;
-            background-color: #0097A7;
-            color: white;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 60px;
-            left: 0;
-            bottom: 0;
-            overflow-y: auto;
-        }
-
+    /* ----------------------------------------
+       SIDEBAR (sin cambios de funcionalidad)
+    ---------------------------------------- */
+    .sidebar {
+      width: 250px;
+      background: #0097A7;
+      color: #fff;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 60px;
+      left: 0;
+      bottom: 0;
+      overflow-y: auto;
+      transition: width .3s ease;
+    }
+    .sidebar.hidden {
+      width: 0;
+      padding: 0;
+      overflow: hidden;
+    }
     .sidebar img.logo {
-            width: 120px;
-            margin: 0 auto 20px auto;
-            display: block;
-            border-radius: 10px;
-        }
-
+      width: 120px;
+      margin: 0 auto 20px auto;
+      display: block;
+      border-radius: 10px;
+    }
     .sidebar h3 {
-        text-align: center;
-        margin-bottom: 15px;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .sidebar a, .sidebar .toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      color: #fff;
+      text-decoration: none;
+      transition: background .3s;
+      cursor: pointer;
+    }
+    .sidebar a:hover, .sidebar .toggle:hover {
+      background-color: #007c91;
+    }
+    .sidebar a img, .toggle img {
+      width: 20px;
+      height: 20px;
+    }
+    .submenu {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      padding-left: 20px;
+      margin-top: 8px;
+    }
+    .submenu.show {
+      display: flex;
+    }
+    .submenu a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 5px;
+      color: #fff;
+      text-decoration: none;
+      transition: background .3s;
+    }
+    .submenu a:hover {
+      background-color: rgba(255,255,255,0.4);
+    }
+    .submenu a img {
+      width: 16px;
+      height: 16px;
     }
 
-    .sidebar a {
-        text-decoration: none;
-        color: white;
-        padding: 10px;
-        border-radius: 5px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        transition: background 0.3s;
+    /* ----------------------------------------
+       CONTENIDO
+    ---------------------------------------- */
+    .content {
+      flex: 1;
+      background: #fff;
+      margin-left: 270px; /* espacio para el sidebar */
+      margin-right: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0 20px; /* ya no hay padding-top para centrar verticalmente */
+      border-radius: 10px;
+      overflow-y: auto;
+      transition: margin-left .3s ease;
+    }
+    .content.sidebar-hidden {
+      margin-left: 20px;
     }
 
-    .sidebar a:hover {
-        background-color: #007c91;
+    /* ----------------------------------------
+       ESTILO DE LA TARJETA DE DETALLE
+    ---------------------------------------- */
+    .detalle-container {
+      background: #fff;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      max-width: 800px;
+      width: 100%;
+      border: 2px solid #0097A7;
+    }
+    .detalle-header {
+      font-size: 1.6rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #0097A7;
+      text-align: center;
+    }
+    .detalle-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 15px;
+    }
+    .detalle-col {
+      width: calc(50% - 10px);
+    }
+    @media (max-width: 768px) {
+      .detalle-col {
+        width: 100%;
+      }
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #37474F;
+    }
+    .detalle-info {
+      padding: 10px;
+      background-color: #F1F1F1;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      color: #333;
+    }
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 5px;
+    }
+    .btn-back {
+      display: inline-block;
+      margin-top: 25px;
+      padding: 10px 20px;
+      background: #0097A7;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: background .2s, transform .1s;
+    }
+    .btn-back:hover {
+      background: #007c91;
+      transform: translateY(-2px);
     }
 
-    .sidebar a img {
-        width: 20px;
-        height: 20px;
+    /* ----------------------------------------
+       BARRA INFERIOR FIJA
+    ---------------------------------------- */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: #0097A7;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    /* --- */
-
-    .sidebar a:hover {
-            background-color: #007c91;
-        }
-
-        .submenu {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            padding-left: 20px;
-        }
-
-        .submenu a {
-            font-size: 14px;
-            padding: 8px;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .submenu a:hover {
-            background-color: rgba(255, 255, 255, 0.4);
-        }
-
-        .submenu a img {
-            width: 16px;
-            height: 16px;
-        }
-
-
-        .content {
-            flex: 1;
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-left: 270px;
-            /* espacio para el sidebar */
-            margin-top: 80px;
-            /* espacio para la top-bar */
-        }
-
-
-        .detalle-container {
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 10px;
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-            border: 1px solid #ddd;
-        }
-
-        .detalle-header {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        .detalle-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .detalle-col {
-            width: 48%;
-        }
-
-        label {
-            font-weight: bold;
-            color: #333;
-        }
-
-        .detalle-info {
-            padding: 8px;
-            background-color: #fff;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            width: 100%;
-        }
-
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 5px;
-        }
-
-        .btn-back {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 15px;
-            background-color: #5bc0de;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-
-        .btn-back:hover {
-            background-color: #46b8da;
-        }
-
-        .bottom-bar {
-            width: 100%;
-            text-align: center;
-            padding: 10px;
-            background-color: #0097A7;
-            color: white;
-        }
-
-        @media (max-width: 768px) {
-            .detalle-col {
-                width: 100%;
-                margin-bottom: 10px;
-            }
-
-            .detalle-container {
-                padding: 15px;
-            }
-
-            .btn-back {
-                width: 100%;
-                text-align: center;
-            }
-        }
-        .sidebar {
-            width: 250px;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar.hidden {
-            width: 0;
-            padding: 0;
-            overflow: hidden;
-        }
-
-        .content {
-            transition: margin-left 0.3s ease;
-        }
-
-        .content.sidebar-hidden {
-            margin-left: 0;
-        }
-    </style>
+  </style>
 </head>
 
 <body>
-
-    <div class="top-bar">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <h2 style="margin: 0;">Sistema de Inventario</h2>
-            <button id="toggleSidebarBtn" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">
-                <i class="fas fa-bars"></i>
-            </button>
-        </div>
-
-        <div class="admin-container">
-            <span class="icon">🔄</span>
-            <span>Admin name 👤</span>
-            <a href="logout.php">Cerrar sesión</a>
-        </div>
+  <!-- Barra superior -->
+  <div class="top-bar">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <h2 style="margin: 0;">Sistema de Inventario</h2>
+      <button id="toggleSidebarBtn" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">
+        <i class="fas fa-bars"></i>
+      </button>
     </div>
+    <span id="fecha-actual" style="font-size: 16px;"></span>
+    <div class="admin-container">
+      <?= htmlspecialchars($_SESSION['nombre_usuario'] ?? 'Usuario') ?> 👤
+      <a href="logout.php">Cerrar sesión</a>
+    </div>
+  </div>
 
-    <div class="container">
+  <!-- Contenedor principal -->
+  <div class="container">
+    <!-- Sidebar (sin cambios de funcionalidad) -->
     <div class="sidebar">
-            <img src="logoadesco.jpg" alt="Logo de ADESCOSET" class="logo">
-            <h3>Sistema de Inventario</h3>
+      <img src="../Image/logoadesco.jpg" class="logo" alt="Logo ADESCOSET">
+      <h3>Sistema de Inventario</h3>
 
-            <a href="dashboard2.php">
-                <img src="../Image/hogarM.png" alt="Inicio"> Inicio
-            </a>
+      <a href="dashboard2.php"><img src="../Image/hogarM.png" alt="Inicio"> Inicio</a>
 
-            <a href="#" class="toggle-submenu">
-                <img src="../Image/avatar1.png" alt="usuarios"> Usuarios ⏷
-            </a>
+      <a href="#" class="toggle-submenu">
+        <i class="fa-solid fa-users"></i> Usuarios ⏷
+      </a>
+      <div class="submenu" id="submenu-usuarios">
+        <a href="AgregarUsuario.php">
+          <i class="fa-solid fa-user-plus"></i> Agregar Usuario
+        </a>
+        <a href="ListAdministrador.php">
+          <i class="fa-solid fa-user-tie"></i> Administradores
+        </a>
+        <a href="ListGeneral.php">
+          <i class="fa-solid fa-user-group"></i> Generales
+        </a>
+      </div>
 
-            <div class="submenu" id="submenu-usuarios" style="display: none;">
-                <a href="AgregarUsuario.php">
-                    <img src="../Image/nuevo-usuario.png" alt="Agregar Usuario"> Agregar Usuario
-                </a>
-                <a href="ListAdministrador.php">
-                    <img src="../Image/usuario1.png" alt="Administradores"> Administradores
-                </a>
-                <a href="ListGeneral.php">
-                    <img src="../Image/grandes-almacenes.png" alt="Usuarios"> Usuarios
-                </a>
-            </div>
+      <a href="AgregarCat.php"><img src="../Image/factura.png" alt="Categorías"> Categorias</a>
 
+      <a href="#" class="toggle-submenu2">
+       <i class="fa-solid fa-truck"></i> Productos ⏷
+      </a>
+      <div class="submenu" id="submenu-productos">
+        <a href="ListProductos.php">
+          <i class="fa-solid fa-clipboard-list"></i> Lista de Productos
+        </a>
+        <a href="AgregarPro.php">
+          <i class="fa-solid fa-circle-plus"></i> Agregar Producto
+        </a>
+        <a href="RetirarPro.php">
+         <i class="fa-solid fa-cart-plus"></i> Retirar Productos
+        </a>
+      </div>
 
-            <a href="AgregarCat.php">
-                <img src="../Image/factura.png" alt="Categorias"> Categorias
-            </a>
-
-            <a href="#" class="toggle-submenu2">
-                <img src="../Image/lista.png" alt="Listado"> Productos ⏷
-            </a>
-
-
-            <div class="submenu" id="submenu-productos" style="display: none;">
-                <a href="ListProductos.php">
-                    <img src="../Image/lista.png" alt="Listado"> Lista de Productos
-                </a>
-                <a href="AgregarPro.php">
-                    <img src="../Image/lista.png" alt="Agregar Producto"> Agregar Producto
-                </a>
-                <a href="">
-                    <img src="../Image/lista.png" alt="Listado"> Retirar Productos
-                </a>
-
-            </div>
-
-
-            <a href="">
-                <img src="../Image/reporte.png" alt="Reporte"> Reportes
-            </a>
-        </div>
-
-        
-
-
-        <div class="content">
-            <div class="detalle-container">
-                <div class="detalle-header">Información de Usuario General</div>
-                <div class="detalle-row">
-                    <!-- <div class="detalle-col">
-                        <label>Código</label>
-                        <div class="detalle-info"><?= htmlspecialchars($derechohabiente['id']) ?></div>
-                    </div> -->
-                    <div class="detalle-col">
-                        <label>Nombre Completo</label>
-                        <div class="detalle-info"><?= htmlspecialchars($derechohabiente['nombre_completo']) ?></div>
-                    </div>
-                    
-                </div>
-                <div class="detalle-row">
-                <div class="detalle-col">
-                        <label>Correo:</label>
-                        <div class="detalle-info"><?= htmlspecialchars($derechohabiente['correo']) ?></div>
-                    </div>
-                    <div class="detalle-col">
-                        <label>Estado</label>
-                        <div class="checkbox-container">
-                            <input type="checkbox" <?= $derechohabiente['estado'] == 'activo' ? 'checked' : '' ?> disabled>
-                            <span><?= htmlspecialchars(ucfirst($derechohabiente['estado'])) ?></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="detalle-row">
-                    <div class="detalle-col">
-                        <label>Telefono</label>
-                        <div class="detalle-info"><?= htmlspecialchars($derechohabiente['telefono']) ?></div>
-                    </div>
-                    <div class="detalle-col">
-                        <label>Numero de DUI</label>
-                        <div class="detalle-info"><?= htmlspecialchars($derechohabiente['numero_dui']) ?></div>
-                    </div>
-                    <div class="detalle-col">
-                        <label>Nombre Usuario</label>
-                        <div class="detalle-info"><?= htmlspecialchars($derechohabiente['nombre_usuario']) ?></div>
-                    </div>
-                    <div class="detalle-col">
-                        <label>Tipo de Usuario</label>
-                        <div class="detalle-info"><?= htmlspecialchars(ucfirst($derechohabiente['tipo_usuario'])) ?></div>
-                    </div>
-                </div>
-                <!-- <div class="detalle-row">
-                    <div class="detalle-col">
-                        <label>Teléfono</label>
-                        <div class="detalle-info"><?= htmlspecialchars($derechohabiente['telefono']) ?></div>
-                    </div>
-                </div> -->
-                <a href="ListGeneral.php" class="btn-back"><i class="fas fa-arrow-left"></i> Volver</a>
-            </div>
-        </div>
+      <a href="Reportes.php"><img src="../Image/reporte.png" alt="Reporte"> Reportes</a>
     </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const toggleLink = document.querySelector(".toggle-submenu");
-            const submenu = document.getElementById("submenu-usuarios");
 
-            toggleLink.addEventListener("click", function(e) {
-                e.preventDefault();
-                submenu.style.display = submenu.style.display === "none" ? "flex" : "none";
-            });
-        });
+    <!-- Contenido principal -->
+    <div class="content">
+      <div class="detalle-container">
+        <div class="detalle-header">Información de Usuario General</div>
 
-        document.addEventListener("DOMContentLoaded", function () {
-        const toggles = document.querySelectorAll(".toggle-submenu2");
+        <div class="detalle-row">
+          <div class="detalle-col">
+            <label>Nombre Completo</label>
+            <div class="detalle-info">
+              <?= htmlspecialchars($derechohabiente['nombre_completo']) ?>
+            </div>
+          </div>
+          <div class="detalle-col">
+            <label>Correo</label>
+            <div class="detalle-info">
+              <?= htmlspecialchars($derechohabiente['correo']) ?>
+            </div>
+          </div>
+        </div>
 
-        toggles.forEach(function (toggle) {
-            toggle.addEventListener("click", function (e) {
-                e.preventDefault();
-                const nextSubmenu = toggle.nextElementSibling;
-                if (nextSubmenu && nextSubmenu.classList.contains("submenu")) {
-                    nextSubmenu.style.display = nextSubmenu.style.display === "none" ? "flex" : "none";
-                }
-            });
-        });
+        <div class="detalle-row">
+          <div class="detalle-col">
+            <label>Estado</label>
+            <div class="checkbox-container">
+              <input type="checkbox" <?= $derechohabiente['estado'] === 'activo' ? 'checked' : '' ?> disabled>
+              <span><?= htmlspecialchars(ucfirst($derechohabiente['estado'])) ?></span>
+            </div>
+          </div>
+          <div class="detalle-col">
+            <label>Teléfono</label>
+            <div class="detalle-info">
+              <?= htmlspecialchars($derechohabiente['telefono']) ?>
+            </div>
+          </div>
+        </div>
+
+        <div class="detalle-row">
+          <div class="detalle-col">
+            <label>Número de DUI</label>
+            <div class="detalle-info">
+              <?= htmlspecialchars($derechohabiente['numero_dui']) ?>
+            </div>
+          </div>
+          <div class="detalle-col">
+            <label>Nombre de Usuario</label>
+            <div class="detalle-info">
+              <?= htmlspecialchars($derechohabiente['nombre_usuario']) ?>
+            </div>
+          </div>
+        </div>
+
+        <div class="detalle-row">
+          <div class="detalle-col">
+            <label>Tipo de Usuario</label>
+            <div class="detalle-info">
+              <?= htmlspecialchars(ucfirst($derechohabiente['tipo_usuario'])) ?>
+            </div>
+          </div>
+        </div>
+
+        <a href="ListGeneral.php" class="btn-back">
+          <i class="fas fa-arrow-left"></i> Volver
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra inferior fija -->
+  <div class="bottom-bar">
+    Desarrolladores © 2025 Xenia, Ivania, Erick
+  </div>
+
+  <script>
+    // Alternar visibilidad del submenú Usuarios
+    document.querySelector('.toggle-submenu').addEventListener('click', () => {
+      document.getElementById('submenu-usuarios').classList.toggle('show');
     });
-
-    document.addEventListener("DOMContentLoaded", function() {
-                const toggleBtn = document.getElementById("toggleSidebarBtn");
-                const sidebar = document.querySelector(".sidebar");
-                const content = document.querySelector(".content");
-
-                toggleBtn.addEventListener("click", () => {
-                    sidebar.classList.toggle("hidden");
-                    content.classList.toggle("sidebar-hidden");
-                });
-            });
-    </script>
-
-    <div class="bottom-bar">
-        Desarrolladores © 2025 Xenia, Ivania, Erick
-    </div>
+    // Alternar visibilidad del submenú Productos
+    document.querySelector('.toggle-submenu2').addEventListener('click', () => {
+      document.getElementById('submenu-productos').classList.toggle('show');
+    });
+    // Alternar visibilidad del sidebar completo
+    document.getElementById('toggleSidebarBtn').addEventListener('click', () => {
+      document.querySelector('.sidebar').classList.toggle('hidden');
+      document.querySelector('.content').classList.toggle('sidebar-hidden');
+    });
+    // Mostrar fecha actual en la top-bar
+    function actualizarFecha() {
+      const fechaElemento = document.getElementById('fecha-actual');
+      const fecha = new Date();
+      const opciones = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      };
+      fechaElemento.textContent = fecha.toLocaleDateString('es-ES', opciones);
+    }
+    actualizarFecha();
+    const ahora = new Date();
+    const msHastaMedianoche = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() + 1).getTime() - ahora.getTime();
+    setTimeout(() => {
+      actualizarFecha();
+      setInterval(actualizarFecha, 24 * 60 * 60 * 1000);
+    }, msHastaMedianoche);
+  </script>
 </body>
-
 </html>

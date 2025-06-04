@@ -1,5 +1,5 @@
 <?php
-// reciboPDF.php
+// reciboPDF.php — imprime 2 recibos idénticos, uno debajo del otro, centrados en A4 portrait
 
 session_start();
 if (!isset($_SESSION['usuario_id'])) {
@@ -12,7 +12,7 @@ use Dompdf\Dompdf;
 
 include(__DIR__ . '/../includes/db.php');
 
-if (!isset($_GET['numero_recibo'])) {
+if (empty($_GET['numero_recibo'])) {
     die('Falta número de recibo');
 }
 $numero = $_GET['numero_recibo'];
@@ -24,14 +24,13 @@ if (!$recibo) {
     die('Recibo no encontrado');
 }
 
-// Convierte imagen a Base64
 function imgBase64($path) {
+    if (!file_exists($path)) return '';
     $type = pathinfo($path, PATHINFO_EXTENSION);
-    $data = file_get_contents($path);
-    return 'data:image/'.$type.';base64,'.base64_encode($data);
+    return 'data:image/'.$type.';base64,'.base64_encode(file_get_contents($path));
 }
-$logoData   = imgBase64(__DIR__.'/../Image/logoadesco.jpg');
-$faucetData = imgBase64(__DIR__.'/../Image/grifo-de-agua.png');
+$logo = imgBase64(__DIR__ . '/../Image/logoadesco.jpg');
+$icon = imgBase64(__DIR__ . '/../Image/grifo-de-agua.png');
 
 ob_start();
 ?>
@@ -40,224 +39,246 @@ ob_start();
 <head>
   <meta charset="UTF-8">
   <style>
-    @page { margin:0; }
-    body { margin:0; font-family:Arial,sans-serif; }
-
-    .page {
-      width:210mm; height:297mm;
-      position:relative;
+    @page { margin:0; size:210mm 297mm; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      font-size: 7pt;
     }
-
-    /* ===== HEADER ===== */
+    .page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;      /* centra los wrappers horizontalmente */
+      width: 210mm;
+      height: 297mm;
+      padding: 5mm;
+      box-sizing: border-box;
+    }
+    .wrapper {
+      width: 80%;                 
+      border: 1px solid #ccc;
+      padding: 3mm;
+      margin-bottom: 5mm;    
+      margin: 0 auto;     
+      display: flex;
+      flex-direction: column;
+      page-break-inside: avoid;
+    }
     .header {
-      background: #008CBA;
-      width:100%;
-      height:35mm;
       position: relative;
-      overflow:hidden;
+      background: #008CBA;
+      height: 20mm;
+      margin-bottom: 3px;
     }
     .header img.logo {
-      position:absolute;
-      top:7mm; left:10mm;
-      width:20mm; height:20mm;
-      border-radius:50%;
-      z-index:2;
+      position: absolute;
+      top: 2mm;
+      left: 2mm;
+      width: 10mm;
+      height: 10mm;
     }
-    .header img.faucet {
-      position:absolute;
-      top:9mm; right:10mm;
-      width:10mm;
-      z-index:2;
+    .header img.icon {
+      position: absolute;
+      top: 3mm;
+      right: 2mm;
+      width: 8mm;
     }
-    .header .titles {
-      position:absolute;
-      top:50%; left:50%;
-      transform:translate(-50%,-50%);
-      text-align:center;
-      color:#fff;
-      line-height:1.2;
-      white-space:nowrap;
+    .titles {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff;
+      text-align: center;
+      line-height: 1;
     }
-    .header .titles h1 {
-      margin:0; font-size:14pt; font-weight:bold; text-transform:uppercase;
+    .titles h1 {
+      margin: 0;
+      font-size: 9pt;
+      font-weight: bold;
     }
-    .header .titles h2 {
-      margin:2pt 0 0; font-size:11pt;
+    .titles h2 {
+      margin: 1pt 0 0;
+      font-size: 7pt;
     }
-    .header .titles h3 {
-      margin:2pt 0 0; font-size:12pt; font-weight:bold;
+    .titles h4 {
+      margin: 2pt 0 0;
+      font-size: 9pt;
+      font-weight: bold;
     }
-
-    /* ===== WRAPPER (superpone al header) ===== */
-    .wrapper {
-      position: relative;
-      background:#fff;
-      width:190mm;
-      margin:-8mm auto 0;
-      padding:10mm;
-      box-sizing:border-box;
-      border:1px solid #ccc;
-      z-index:1;
+    .info {
+      display: flex;
+      justify-content: space-between;
+      margin: 4px 0;
     }
-
-    .box {
-      border:1px solid #000;
-      margin-bottom:6mm;
-      padding:4mm;
-      page-break-inside:avoid;
+    .block {
+      width: 48%;
     }
-    .box-title {
-      font-size:12pt; font-weight:bold;
-      margin-bottom:3mm;
-      border-bottom:2px solid #008CBA;
-      padding-bottom:1mm;
-    }
-    .flex-row {
-      display:flex; justify-content:space-between;
-      margin-bottom:3mm;
-    }
-    .flex-col { width:48%; }
     .label {
-      font-size:10pt; font-weight:bold;
-      margin-bottom:1mm;
+      display: inline-block;
+      width: 80px;
+      font-weight: bold;
     }
     .value {
-      background:#eee; border:1px solid #000;
-      padding:1mm; font-size:10pt;
-      height:5mm; line-height:5mm;
+      display: inline-block;
     }
-
-    /* ===== FOOTER ===== */
+    .subtitle {
+      text-align: center;
+      font-weight: bold;
+      font-size: 8pt;
+      border-top: 1px solid #000;
+      border-bottom: 1px solid #000;
+      margin: 4px 0;
+      padding: 2px 0;
+    }
+    .summary {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 48%;
+      font-size: 7pt;
+    }
+    th, td {
+      border: 1px solid #000;
+      padding: 2px 4px;
+    }
+    th {
+      background: #f0f0f0;
+      text-align: left;
+    }
+    .right th, .right td {
+      text-align: right;
+    }
     .footer {
-      position:absolute; bottom:0; left:0;
-      width:100%; height:12mm;
-      background:#008CBA; color:#fff;
-      text-align:center; line-height:12mm;
-      font-size:9pt;
+      margin-top: auto;
+      text-align: center;
+      font-size: 6.5pt;
+      color: #666;
     }
   </style>
 </head>
 <body>
   <div class="page">
-    <!-- HEADER -->
-    <div class="header">
-      <img src="<?= $logoData ?>" class="logo" alt="Logo">
-      <img src="<?= $faucetData ?>" class="faucet" alt="Grifo">
-      <div class="titles">
-        <h1>ASOCIACIÓN DE DESARROLLO COMUNAL, SEVERO TEPEYAC</h1>
-        <h2>(ADESCOSET)</h2>
-        <h3>RECIBO</h3>
-      </div>
-    </div>
+    <?php for ($i = 0; $i < 2; $i++): ?>
+      <div class="wrapper">
+        <!-- HEADER -->
+        <div class="header">
+          <?php if ($logo): ?>
+            <img src="<?= $logo ?>" class="logo">
+          <?php endif; ?>
+          <?php if ($icon): ?>
+            <img src="<?= $icon ?>" class="icon">
+          <?php endif; ?>
+          <div class="titles">
+            <h1>ASOCIACIÓN DE DESARROLLO COMUNAL</h1>
+            <h2>SEVERO TEPEYAC – Col. Severo López</h2>
+            <h4>RECIBO</h4>
+          </div>
+        </div>
 
-    <!-- CONTENIDO -->
-    <div class="wrapper">
-      <!-- Datos Recibo -->
-      <div class="box">
-        <div class="flex-row">
-          <div class="flex-col">
-            <div class="label">N° Recibo:</div>
-            <div class="value"><?=htmlspecialchars($recibo['numero_recibo'])?></div>
+        <!-- DATOS PRINCIPALES -->
+        <div class="info">
+          <div class="block">
+            <div>
+              <span class="label">N° Recibo:</span>
+              <span class="value"><?= htmlspecialchars($recibo['numero_recibo']) ?></span>
+            </div>
+            <div>
+              <span class="label">Propietario:</span>
+              <span class="value"><?= htmlspecialchars($recibo['propietario']) ?></span>
+            </div>
+            <div>
+              <span class="label">Dirección:</span>
+              <span class="value"><?= htmlspecialchars($recibo['direccion']) ?></span>
+            </div>
           </div>
-          <div class="flex-col">
-            <div class="label">Fecha Emisión:</div>
-            <div class="value"><?=htmlspecialchars($recibo['fecha_emision'])?></div>
+          <div class="block">
+            <div>
+              <span class="label">Emisión:</span>
+              <span class="value"><?= htmlspecialchars($recibo['fecha_emision']) ?></span>
+            </div>
+            <div>
+              <span class="label">Vencimiento:</span>
+              <span class="value"><?= htmlspecialchars($recibo['fecha_vencimiento']) ?></span>
+            </div>
           </div>
         </div>
-        <div class="flex-row">
-          <div class="flex-col">
-            <div class="label">Fecha Vencimiento:</div>
-            <div class="value"><?=htmlspecialchars($recibo['fecha_vencimiento'])?></div>
-          </div>
-          <div class="flex-col">&nbsp;</div>
-        </div>
-      </div>
 
-      <!-- Informe Propietario -->
-      <div class="box">
-        <div class="box-title">Informe Propietario</div>
-        <div class="flex-row">
-          <div class="flex-col">
-            <div class="label">Propietario:</div>
-            <div class="value"><?=htmlspecialchars($recibo['propietario'])?></div>
-          </div>
-          <div class="flex-col">
-            <div class="label">Dirección:</div>
-            <div class="value"><?=htmlspecialchars($recibo['direccion'])?></div>
-          </div>
-        </div>
-      </div>
+        <div class="subtitle">Resumen de Consumo y Estado</div>
 
-      <!-- Informe Consumo -->
-      <div class="box">
-        <div class="box-title">Informe de Consumo</div>
-        <div class="flex-row">
-          <div class="flex-col">
-            <div class="label">Fecha Lectura:</div>
-            <div class="value"><?=htmlspecialchars($recibo['fecha_lectura'])?></div>
-          </div>
-          <div class="flex-col">
-            <div class="label">Metros Cúbicos:</div>
-            <div class="value"><?=htmlspecialchars($recibo['metros_cubicos'])?></div>
-          </div>
+        <!-- TABLAS LADO A LADO -->
+        <div class="summary">
+          <table>
+            <thead>
+              <tr>
+                <th colspan="2">Informe de Consumo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Fecha Lectura</td>
+                <td><?= htmlspecialchars($recibo['fecha_lectura']) ?></td>
+              </tr>
+              <tr>
+                <td>m³ Consumidos</td>
+                <td><?= htmlspecialchars($recibo['metros_cubicos']) ?></td>
+              </tr>
+              <tr>
+                <td>N° Suministro</td>
+                <td><?= htmlspecialchars($recibo['numero_suministro']) ?></td>
+              </tr>
+              <tr>
+                <td>L. Anterior</td>
+                <td><?= htmlspecialchars($recibo['lectura_anterior']) ?></td>
+              </tr>
+              <tr>
+                <td>L. Actual</td>
+                <td><?= htmlspecialchars($recibo['lectura_actual']) ?></td>
+              </tr>
+              <tr>
+                <td>N° Medidor</td>
+                <td><?= htmlspecialchars($recibo['numero_medidor']) ?></td>
+              </tr>
+            </tbody>
+          </table>
+          <table class="right">
+            <thead>
+              <tr>
+                <th colspan="2">Estado de Cuenta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Meses Pendientes</td>
+                <td><?= htmlspecialchars($recibo['meses_pendiente']) ?></td>
+              </tr>
+              <tr>
+                <td>Multas</td>
+                <td><?= htmlspecialchars($recibo['multas']) ?></td>
+              </tr>
+              <tr>
+                <td>Total</td>
+                <td><?= htmlspecialchars($recibo['total']) ?></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div class="flex-row">
-          <div class="flex-col">
-            <div class="label">N° Suministro:</div>
-            <div class="value"><?=htmlspecialchars($recibo['numero_suministro'])?></div>
-          </div>
-          <div class="flex-col">
-            <div class="label">L. Anterior:</div>
-            <div class="value"><?=htmlspecialchars($recibo['lectura_anterior'])?></div>
-          </div>
-        </div>
-        <div class="flex-row">
-          <div class="flex-col">
-            <div class="label">N° Medidor:</div>
-            <div class="value"><?=htmlspecialchars($recibo['numero_medidor'])?></div>
-          </div>
-          <div class="flex-col">
-            <div class="label">L. Actual:</div>
-            <div class="value"><?=htmlspecialchars($recibo['lectura_actual'])?></div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Estado Cuenta -->
-      <div class="box">
-        <div class="box-title">Estado de Cuenta</div>
-        <div class="flex-row">
-          <div class="flex-col">
-            <div class="label">Meses Pendientes:</div>
-            <div class="value"><?=htmlspecialchars($recibo['meses_pendiente'])?></div>
-          </div>
-          <div class="flex-col">
-            <div class="label">Multas:</div>
-            <div class="value"><?=htmlspecialchars($recibo['multas'])?></div>
-          </div>
-        </div>
-        <div class="flex-row">
-          <div class="flex-col">
-            <div class="label">Total:</div>
-            <div class="value"><?=htmlspecialchars($recibo['total'])?></div>
-          </div>
-          <div class="flex-col">&nbsp;</div>
-        </div>
+     
       </div>
-    </div>
-
-    <!-- FOOTER -->
-    <div class="footer">
-      Desarrolladores © 2025 Xenia, Ivania, Erick
-    </div>
+    <?php endfor; ?>
   </div>
 </body>
 </html>
 <?php
 $html = ob_get_clean();
-
 $dompdf = new Dompdf();
 $dompdf->loadHtml($html);
 $dompdf->setPaper('A4','portrait');
 $dompdf->render();
-$dompdf->stream("Recibo_{$numero}.pdf", ['Attachment'=>true]);
+$dompdf->stream("Recibos_{$numero}.pdf", ['Attachment' => false]);
+exit();
+?>

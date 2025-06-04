@@ -104,7 +104,7 @@ CREATE TABLE usuariosag (
     telefono VARCHAR(20) NOT NULL,
     numero_dui VARCHAR(20) NOT NULL UNIQUE,
     nombre_usuario VARCHAR(50) NOT NULL UNIQUE,
-    contraseña VARCHAR(255) NOT NULL,  -- Almacena la contraseña cifrada
+    contraseña VARCHAR(255) NOT NULL,  
     estado ENUM('activo', 'inactivo') NOT NULL,
     tipo_usuario ENUM('Administrador', 'General') NOT NULL
 );
@@ -122,15 +122,28 @@ CREATE TABLE productos (
     precio DECIMAL(10,2) NOT NULL,
     categoria VARCHAR(100) NOT NULL
 );
-CREATE TABLE historial_retiros (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    producto_id INT UNSIGNED,
-    usuario_id INT UNSIGNED,
-    cantidad INT NOT NULL,
-    fecha DATETIME NOT NULL,
-    FOREIGN KEY (producto_id) REFERENCES productos(id),
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB;
+CREATE TABLE `ventas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `producto_id` int(11) NOT NULL,
+  `usuario_id` int(11) NOT NULL,
+  `cantidad` int(11) NOT NULL,
+  `precio_unitario` decimal(10,2) NOT NULL,
+  `total` decimal(10,2) GENERATED ALWAYS AS (`cantidad` * `precio_unitario`) STORED,
+  `fecha` DATETIME NULL,
+  `descripcion` TEXT DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE compras (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    producto_id INT NOT NULL,
+    cantidad_comprada INT NOT NULL,
+    precio DECIMAL(10,2) NOT NULL,
+    categoria VARCHAR(100) NOT NULL,
+    fecha_compra DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (producto_id) REFERENCES productos(id)
+);
+
 
 -- -- Tabla productos
 -- CREATE TABLE productos (

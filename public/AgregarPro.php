@@ -2,7 +2,7 @@
 session_start();
 include('../includes/db.php'); // Incluye la conexión a la base de datos
 
-//Verificar si el formulario de login ha sido enviado
+// Verificar si el formulario de login ha sido enviado (aunque aquí en AgregarPro.php realmente estamos guardando producto)
 if (isset($_POST['submit'])) {
     $correo = $_POST['correo'];
     $contrasena = $_POST['contrasena'];
@@ -24,17 +24,15 @@ if (isset($_POST['submit'])) {
 
 if (isset($_POST['guardar'])) {
     $nombre_producto = $_POST['nombre_producto'];
-    $cantidad = $_POST['cantidad'];
-    $precio = $_POST['precio'];
-    $categoria = $_POST['categoria'];
+    $precio           = $_POST['precio'];
+    $categoria        = $_POST['categoria'];
 
     try {
         // Preparar sentencia SQL para insertar producto
-        $stmt = $pdo->prepare("INSERT INTO productos (nombre_producto, cantidad, precio, categoria) 
-                               VALUES (:nombre_producto, :cantidad, :precio, :categoria)");
+        $stmt = $pdo->prepare("INSERT INTO productos (nombre_producto, precio, categoria) 
+                               VALUES (:nombre_producto, :precio, :categoria)");
 
         $stmt->bindParam(':nombre_producto', $nombre_producto);
-        $stmt->bindParam(':cantidad', $cantidad);
         $stmt->bindParam(':precio', $precio);
         $stmt->bindParam(':categoria', $categoria);
 
@@ -51,13 +49,13 @@ if (isset($_POST['guardar'])) {
 
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Inventario</title>
+    <title>Agregar Producto | Sistema de Inventario</title>
     <style>
+        /* ==== RESET GENERAL ==== */
         * {
             margin: 0;
             padding: 0;
@@ -68,10 +66,11 @@ if (isset($_POST['guardar'])) {
         body {
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            min-height: 100vh;
             background-color: #E0F7FA;
         }
 
+        /* ==== TOP BAR ==== */
         .top-bar {
             width: 100%;
             height: 60px;
@@ -81,11 +80,9 @@ if (isset($_POST['guardar'])) {
             align-items: center;
             padding: 0 20px;
             position: fixed;
-            /* ← CAMBIO AQUÍ */
             top: 0;
             left: 0;
             z-index: 1000;
-            /* Asegura que esté sobre otros elementos */
             color: white;
         }
 
@@ -106,29 +103,27 @@ if (isset($_POST['guardar'])) {
             font-weight: bold;
         }
 
-        .icon {
-            font-size: 18px;
-        }
-
         .admin-container a {
             text-decoration: none;
             background-color: red;
             color: white;
             padding: 8px 12px;
             border-radius: 5px;
+            transition: background-color 0.3s;
         }
 
         .admin-container a:hover {
             background-color: darkred;
         }
 
+        /* ==== LAYOUT PRINCIPAL ==== */
         .container {
             display: flex;
             flex: 1;
         }
 
+        /* ==== SIDEBAR ==== */
         .sidebar {
-            width: 230px;
             background-color: #0097A7;
             color: white;
             padding: 20px;
@@ -139,6 +134,14 @@ if (isset($_POST['guardar'])) {
             left: 0;
             bottom: 0;
             overflow-y: auto;
+            transition: all 0.3s ease;
+            width: 250px;
+        }
+
+        .sidebar.hidden {
+            width: 0;
+            padding: 0;
+            overflow: hidden;
         }
 
         .sidebar img.logo {
@@ -148,15 +151,20 @@ if (isset($_POST['guardar'])) {
             border-radius: 10px;
         }
 
+        .sidebar h3 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
         .sidebar a {
             text-decoration: none;
             color: white;
-            display: flex;
-            align-items: center;
-            gap: 10px;
             padding: 10px;
             border-radius: 5px;
             transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .sidebar a:hover {
@@ -168,11 +176,18 @@ if (isset($_POST['guardar'])) {
             height: 20px;
         }
 
+        /* Submenú oculto por defecto */
         .submenu {
-            display: flex;
+            display: none;
             flex-direction: column;
             gap: 5px;
             padding-left: 20px;
+            margin-top: 8px;
+        }
+
+        /* Submenú cuando tenga la clase show */
+        .submenu.show {
+            display: flex;
         }
 
         .submenu a {
@@ -183,6 +198,8 @@ if (isset($_POST['guardar'])) {
             display: flex;
             align-items: center;
             gap: 8px;
+            color: white;
+            text-decoration: none;
         }
 
         .submenu a:hover {
@@ -194,139 +211,49 @@ if (isset($_POST['guardar'])) {
             height: 16px;
         }
 
+        /* ==== CONTENIDO PRINCIPAL ==== */
         .content {
             flex: 1;
             background-color: white;
-            padding: 20px;
             border-radius: 10px;
-            margin-left: 270px;
-            /* espacio para el sidebar */
-            margin-top: 80px;
-            /* espacio para la top-bar */
+            margin-left: 230px; /* espacio para el sidebar */
+            margin-top: 60px;   /* espacio para la top-bar */
+            transition: margin-left 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 200px;
         }
 
+        /* Cuando el sidebar esté oculto */
+        .content.sidebar-hidden {
+            margin-left: 20px;
+        }
+
+        /* ==== FORMULARIO DISEÑO FIJO ==== */
         .form-container {
             background: #F1F1F1;
-            padding: 20px;
+            padding: 30px;
             border-radius: 10px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            font-weight: bold;
-            display: block;
-        }
-
-        input,
-        select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        .buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .btn-save {
-            background-color: #0097A7;
-            color: white;
-        }
-
-        .btn-cancel {
-            background-color: red;
-            color: white;
-        }
-
-        .btn-cancel:hover {
-            background-color: darkred;
-        }
-
-        .bottom-bar {
-            width: 100%;
-            text-align: center;
-            padding: 10px;
-            background-color: #0097A7;
-            color: white;
-        }
-
-        .success {
-            color: green;
-            margin-bottom: 10px;
-        }
-
-        .error {
-            color: red;
-            margin-bottom: 10px;
-        }
-
-        .estado-container {
-            display: flex;
-            gap: 20px;
-            margin-top: 5px;
-        }
-
-        .estado-container label {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            cursor: pointer;
-        }
-
-        .estado-container input {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-
-        .checkmark {
-            height: 20px;
-            width: 20px;
-            border-radius: 5px;
-            display: inline-block;
-            border: 2px solid #ccc;
-            background-color: #f4f4f4;
-            transition: all 0.2s ease-in-out;
-        }
-
-        #activo:checked+.checkmark {
-            background-color: green;
-            border-color: green;
-        }
-
-        #inactivo:checked+.checkmark {
-            background-color: red;
-            border-color: red;
-        }
-
-
-
-
-        /* Estilo para el formulario */
-        .form-container {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            margin-top: 20px;
+            gap: 30px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .form-container h3 {
+            text-decoration: underline;
+            margin-bottom: 10px;
+            color: #0097A7;
+            text-align: center;
+            font-size: 1.4rem;
         }
 
         .form-row {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            /* Dos columnas iguales */
+            grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
             gap: 20px;
         }
 
@@ -338,65 +265,101 @@ if (isset($_POST['guardar'])) {
         .form-group label {
             font-weight: bold;
             margin-bottom: 5px;
+            color: #37474F;
         }
 
         .form-group input,
         .form-group select {
             padding: 10px;
             border: 1px solid #ccc;
-            border-radius: 4px;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
-        .estado-container {
-            display: flex;
-            gap: 10px;
-        }
-
-        .estado-container label {
-            display: flex;
-            align-items: center;
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #0097A7;
+            box-shadow: 0 0 6px rgba(0, 151, 167, 0.3);
         }
 
         .buttons {
             display: flex;
             justify-content: space-between;
+            flex-wrap: wrap;
         }
 
-        .full-width {
-            grid-column: span 2;
-            /* Toma ambas columnas en la fila */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, transform 0.1s;
+             margin-top: 20px;
         }
 
+        .btn-save {
+            background-color: #0097A7;
+        }
+
+        .btn-save:hover {
+            background-color: #007c91;
+            transform: translateY(-2px);
+            
+        }
+
+        .btn-cancel {
+          background-color: #0097A7;
+           
+        }
+
+        .btn-cancel:hover {
+            background-color: darkred;
+            transform: translateY(-2px);
+        }
+
+        /* ==== MENSAJES ==== */
+        .success {
+            color: green;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .error {
+            color: red;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        /* ==== BOTTOM BAR ==== */
+        .bottom-bar {
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            background-color: #0097A7;
+            color: white;
+            margin-top: auto;
+        }
+
+        /* ==== RESPONSIVE ==== */
         @media (max-width: 768px) {
             .form-row {
                 grid-template-columns: 1fr;
-                /* Una sola columna en pantallas pequeñas */
             }
 
             .buttons {
                 flex-direction: column;
+                gap: 10px;
             }
         }
-
-        .sidebar {
-            width: 250px;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar.hidden {
-            width: 0;
-            padding: 0;
-            overflow: hidden;
-        }
-
-        .content {
-            transition: margin-left 0.3s ease;
-        }
-
-        .content.sidebar-hidden {
-            margin-left: 0;
-        }
-
     </style>
 </head>
 
@@ -409,15 +372,12 @@ if (isset($_POST['guardar'])) {
                 <i class="fas fa-bars"></i>
             </button>
         </div>
-
+        <span id="fecha-actual" style="margin-left: 20px; font-size: 16px;"></span>
         <div class="admin-container">
-            <span class="icon">🔄</span>
-            <span>Admin name 👤</span>
+            <?= htmlspecialchars($_SESSION['nombre_usuario'] ?? 'Usuario') ?> 👤
             <a href="logout.php">Cerrar sesión</a>
         </div>
     </div>
-
-
 
     <!-- Contenedor principal -->
     <div class="container">
@@ -431,71 +391,61 @@ if (isset($_POST['guardar'])) {
             </a>
 
             <a href="#" class="toggle-submenu">
-                <img src="../Image/avatar1.png" alt="usuarios"> Usuarios ⏷
+                <i class="fa-solid fa-users"></i> Usuarios ⏷
             </a>
-
-            <div class="submenu" id="submenu-usuarios" style="display: none;">
+            <div class="submenu" id="submenu-usuarios">
                 <a href="AgregarUsuario.php">
-                    <img src="../Image/nuevo-usuario.png" alt="Agregar Usuario"> Agregar Usuario
+                   <i class="fa-solid fa-user-plus"></i> Agregar Usuario
                 </a>
                 <a href="ListAdministrador.php">
-                    <img src="../Image/usuario1.png" alt="Administradores"> Administradores
+                    <i class="fa-solid fa-user-tie"></i> Administradores
                 </a>
                 <a href="ListGeneral.php">
-                    <img src="../Image/grandes-almacenes.png" alt="Usuarios"> Usuarios
+                     <i class="fa-solid fa-user-group"></i> Generales
                 </a>
             </div>
-
 
             <a href="AgregarCat.php">
                 <img src="../Image/factura.png" alt="Categorias"> Categorias
             </a>
 
             <a href="#" class="toggle-submenu2">
-                <img src="../Image/lista.png" alt="Listado"> Productos ⏷
+                <i class="fa-solid fa-truck"></i> Productos ⏷
             </a>
-
-
-            <div class="submenu" id="submenu-productos" style="display: none;">
+            <div class="submenu" id="submenu-productos">
                 <a href="ListProductos.php">
-                    <img src="../Image/lista.png" alt="Listado"> Lista de Productos
+                    <i class="fa-solid fa-clipboard-list"></i> Lista de Productos
                 </a>
                 <a href="AgregarPro.php">
-                    <img src="../Image/lista.png" alt="Agregar Producto"> Agregar Producto
+                    <i class="fa-solid fa-circle-plus"></i> Agregar Producto
                 </a>
-                <a href="">
-                    <img src="../Image/lista.png" alt="Listado"> Retirar Productos
+                <a href="RetirarPro.php">
+                     <i class="fa-solid fa-cart-plus"></i> Retirar Productos
                 </a>
-
             </div>
 
-
-            <a href="">
+            <a href="Reportes.php">
                 <img src="../Image/reporte.png" alt="Reporte"> Reportes
             </a>
         </div>
 
         <!-- Contenido principal -->
-
         <div class="content">
-            <h2>Agregar Producto</h2>
-
-            <?php if (isset($success)) : ?>
-                <p class="success"><?= $success ?></p>
-            <?php elseif (isset($error_agregar)) : ?>
-                <p class="error"><?= $error_agregar ?></p>
-            <?php endif; ?>
-
             <div class="form-container">
-                <form method="POST" action="">
-                    <h3 style="text-decoration: underline;">Datos</h3>
+                <h3>Datos del Producto</h3>
 
+                <?php if (isset($success)) : ?>
+                    <p class="success"><?= $success ?></p>
+                <?php elseif (isset($error_agregar)) : ?>
+                    <p class="error"><?= $error_agregar ?></p>
+                <?php endif; ?>
+
+                <form method="POST" action="">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="nombre_producto">Nombre Producto</label>
                             <input type="text" id="nombre_producto" name="nombre_producto" required>
                         </div>
-
                         <div class="form-group">
                             <label for="categoria">Categorías</label>
                             <select id="categoria" name="categoria" required>
@@ -503,7 +453,8 @@ if (isset($_POST['guardar'])) {
                                 try {
                                     $stmt = $pdo->query("SELECT nombre_categoria FROM categorias");
                                     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                                        echo "<option value=\"" . htmlspecialchars($row['nombre_categoria']) . "\">" . htmlspecialchars($row['nombre_categoria']) . "</option>";
+                                        echo "<option value=\"" . htmlspecialchars($row['nombre_categoria']) . "\">"
+                                            . htmlspecialchars($row['nombre_categoria']) . "</option>";
                                     }
                                 } catch (PDOException $e) {
                                     echo "<option>Error al cargar categorías</option>";
@@ -515,69 +466,71 @@ if (isset($_POST['guardar'])) {
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="cantidad">Cantidad</label>
-                            <input type="number" id="cantidad" name="cantidad" min="1" step="1" required>
-                        </div>
-                        <div class="form-group">
                             <label for="precio">Precio</label>
                             <input type="number" id="precio" name="precio" min="0.01" step="0.01" required>
                         </div>
+                        <!-- Si en el futuro deseas otro campo, aquí podrías agregarlo en segunda columna -->
                     </div>
 
                     <div class="buttons">
-                        <button type="reset" class="btn btn-cancel">Cancelar</button>
+                        <a href="dashboard2.php" class="btn btn-cancel">Cancelar</a>
                         <button type="submit" name="guardar" class="btn btn-save">Guardar</button>
                     </div>
                 </form>
             </div>
-
         </div>
-
     </div>
 
-    </div>
-
-
+    <!-- Barra inferior -->
     <div class="bottom-bar">
         Desarrolladores © 2025 Xenia, Ivania, Erick
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const toggleLink = document.querySelector(".toggle-submenu");
-            const submenu = document.getElementById("submenu-usuarios");
-
-            toggleLink.addEventListener("click", function(e) {
-                e.preventDefault();
-                submenu.style.display = submenu.style.display === "none" ? "flex" : "none";
-            });
+        // Alternar submenú Usuarios
+        document.querySelector('.toggle-submenu').addEventListener('click', function (e) {
+            e.preventDefault();
+            const submenu = document.getElementById('submenu-usuarios');
+            submenu.classList.toggle('show');
         });
+
+        // Alternar submenú Productos
+        document.querySelector('.toggle-submenu2').addEventListener('click', function (e) {
+            e.preventDefault();
+            const submenu = document.getElementById('submenu-productos');
+            submenu.classList.toggle('show');
+        });
+
+        // Alternar sidebar completo
+        document.getElementById('toggleSidebarBtn').addEventListener('click', function () {
+            document.querySelector('.sidebar').classList.toggle('hidden');
+            document.querySelector('.content').classList.toggle('sidebar-hidden');
+        });
+
+        // Función para actualizar la fecha actual en la top-bar
+        function actualizarFecha() {
+            const fechaElemento = document.getElementById("fecha-actual");
+            const fecha = new Date();
+            const opciones = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            };
+            fechaElemento.textContent = fecha.toLocaleDateString('es-ES', opciones);
+        }
 
         document.addEventListener("DOMContentLoaded", function () {
-        const toggles = document.querySelectorAll(".toggle-submenu2");
+            actualizarFecha(); // Mostrar la fecha al cargar la página
 
-        toggles.forEach(function (toggle) {
-            toggle.addEventListener("click", function (e) {
-                e.preventDefault();
-                const nextSubmenu = toggle.nextElementSibling;
-                if (nextSubmenu && nextSubmenu.classList.contains("submenu")) {
-                    nextSubmenu.style.display = nextSubmenu.style.display === "none" ? "flex" : "none";
-                }
-            });
+            // Calcular milisegundos hasta medianoche para refrescar
+            const ahora = new Date();
+            const msHastaMedianoche = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() + 1).getTime() - ahora.getTime();
+            setTimeout(() => {
+                actualizarFecha();
+                setInterval(actualizarFecha, 24 * 60 * 60 * 1000);
+            }, msHastaMedianoche);
         });
-    });
-
-    document.addEventListener("DOMContentLoaded", function() {
-                const toggleBtn = document.getElementById("toggleSidebarBtn");
-                const sidebar = document.querySelector(".sidebar");
-                const content = document.querySelector(".content");
-
-                toggleBtn.addEventListener("click", () => {
-                    sidebar.classList.toggle("hidden");
-                    content.classList.toggle("sidebar-hidden");
-                });
-            });
     </script>
 </body>
-
 </html>

@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
     }
 }
 
-function obtenerDerechohabientes($pdo)
+function obtenerProductos($pdo)
 {
     $stmt = $pdo->prepare("SELECT * FROM productos");
     $stmt->execute();
@@ -150,6 +150,7 @@ function obtenerDerechohabientes($pdo)
             flex-direction: column;
             gap: 5px;
             padding-left: 20px;
+            margin-top: 8px;
         }
 
         .submenu a {
@@ -353,10 +354,9 @@ function obtenerDerechohabientes($pdo)
                 <i class="fas fa-bars"></i>
             </button>
         </div>
-
+        <span id="fecha-actual" style="margin-left: 20px; font-size: 16px;"></span>
         <div class="admin-container">
-            <span class="icon">🔄</span>
-            <span>Admin name 👤</span>
+            <?= htmlspecialchars($_SESSION['nombre_usuario'] ?? 'Usuario') ?> 👤
             <a href="logout.php">Cerrar sesión</a>
         </div>
     </div>
@@ -371,19 +371,20 @@ function obtenerDerechohabientes($pdo)
             </a>
 
             <a href="#" class="toggle-submenu">
-                <img src="../Image/avatar1.png" alt="usuarios"> Usuarios ⏷
+                <i class="fa-solid fa-users"></i> Usuarios ⏷
             </a>
 
             <div class="submenu" id="submenu-usuarios" style="display: none;">
                 <a href="AgregarUsuario.php">
-                    <img src="../Image/nuevo-usuario.png" alt="Agregar Usuario"> Agregar Usuario
+                    <i class="fa-solid fa-user-plus"></i> Agregar Usuario
                 </a>
                 <a href="ListAdministrador.php">
-                    <img src="../Image/usuario1.png" alt="Administradores"> Administradores
+                    <i class="fa-solid fa-user-tie"></i> Administradores
                 </a>
                 <a href="ListGeneral.php">
-                    <img src="../Image/grandes-almacenes.png" alt="Usuarios"> Usuarios
+                    <i class="fa-solid fa-user-group"></i> Generales
                 </a>
+
             </div>
 
 
@@ -392,53 +393,55 @@ function obtenerDerechohabientes($pdo)
             </a>
 
             <a href="#" class="toggle-submenu2">
-                <img src="../Image/lista.png" alt="Listado"> Productos ⏷
+                <i class="fa-solid fa-truck"></i> Productos ⏷
             </a>
-            
+
 
             <div class="submenu" id="submenu-productos" style="display: none;">
-            <a href="ListProductos.php">
-                    <img src="../Image/lista.png" alt="Listado"> Lista de Productos
+                <a href="ListProductos.php">
+                    <i class="fa-solid fa-clipboard-list"></i> Lista de Productos
                 </a>
                 <a href="AgregarPro.php">
-                    <img src="../Image/lista.png" alt="Agregar Producto"> Agregar Producto
+                    <i class="fa-solid fa-circle-plus"></i> Agregar Producto
                 </a>
-                <a href="">
-                    <img src="../Image/lista.png" alt="Listado"> Retirar Productos
+                <a href="RetirarPro.php">
+                    <i class="fa-solid fa-cart-plus"></i> Retirar Productos
                 </a>
-                
+
             </div>
 
 
-            <a href="">
+            <a href="Reportes.php">
                 <img src="../Image/reporte.png" alt="Reporte"> Reportes
             </a>
         </div>
 
         <div class="content">
             <h2>Lista de Productos</h2>
-            <div class="search-container">
-                <input type="text" id="search" placeholder="Buscar Derechohabiente" onkeyup="buscarDerechohabiente()">
-                <button onclick="buscarDerechohabiente()"><i class="fas fa-search"></i></button>
+           <div class="search-container">
+                <input type="text" id="search" placeholder="Buscar Producto por Nombre o Categoria" onkeyup="buscarProducto()">
+                <button onclick="buscarProducto()"><i class="fas fa-search"></i></button>
             </div>
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Nombre</th>
+                        <th>Stock</th>
                         <th>Precio</th>
                         <th>Categoria</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
-                <tbody id="tablaDerechohabientes">
+                <tbody id="tablaProductos">
                     <?php
-                    $registros = obtenerDerechohabientes($pdo);
+                    $registros = obtenerProductos($pdo);
                     foreach ($registros as $row) {
                         echo "<tr>
                             <td>{$row['id']}</td>
                             <td>{$row['nombre_producto']}</td>
-                            <td>{$row['precio']}</td>
+                            <td>{$row['cantidad']}</td>
+                            <td>$ {$row['precio']}</td>
                             <td>{$row['categoria']}</td>                            
                             <td>
                                 <a href='VentaPro.php?id={$row['id']}' class='action-btn btn-edit'><i class='fa-solid fa-cart-shopping'></i></a>
@@ -451,55 +454,28 @@ function obtenerDerechohabientes($pdo)
         </div>
     </div>
 
-    <div id="modalEliminar" class="modal">
-        <div class="modal-content">
-            <i class="fas fa-exclamation-circle modal-icon"></i>
-            <h3>¿Estás seguro de eliminar?</h3>
-            <p>¡Esta acción no se puede deshacer!</p>
-            <div class="modal-btns">
-                <button class="btn-confirm" onclick="eliminarDerechohabiente()">Sí, eliminar</button>
-                <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
     <div class="bottom-bar">
         Desarrolladores © 2025 Xenia, Ivania, Erick
     </div>
 
     <script>
-        let idEliminar = 0;
+        
 
-        function confirmarEliminacion(id) {
-            idEliminar = id;
-            document.getElementById('modalEliminar').style.display = 'block';
-        }
+       
 
-        function cerrarModal() {
-            document.getElementById('modalEliminar').style.display = 'none';
-        }
+        function buscarProducto() {
+            const input = document.getElementById('search').value.toLowerCase();
+            const filas = document.querySelectorAll("#tablaProductos tr");
 
-        function eliminarDerechohabiente() {
-            if (idEliminar !== 0) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '';
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'eliminar_id';
-                input.value = idEliminar;
-                form.appendChild(input);
-                document.body.appendChild(form);
-                form.submit();
-            }
-        }
+            filas.forEach(fila => {
+                const nombre = fila.children[1]?.textContent.toLowerCase(); // columna del nombre
+                const categoria = fila.children[4]?.textContent.toLowerCase(); // columna de categoría
 
-        function buscarDerechohabiente() {
-            let input = document.getElementById("search").value.toLowerCase();
-            let rows = document.querySelectorAll("#tablaDerechohabientes tr");
-            rows.forEach(row => {
-                let nombre = row.cells[1].innerText.toLowerCase();
-                row.style.display = nombre.includes(input) ? "" : "none";
+                if (nombre.includes(input) || categoria.includes(input)) {
+                    fila.style.display = "";
+                } else {
+                    fila.style.display = "none";
+                }
             });
         }
         document.addEventListener("DOMContentLoaded", function() {
@@ -536,6 +512,34 @@ function obtenerDerechohabientes($pdo)
                     content.classList.toggle("sidebar-hidden");
                 });
             });
+    
+
+            function actualizarFecha() {
+        const fechaElemento = document.getElementById("fecha-actual");
+        const fecha = new Date();
+
+        const opciones = {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        };
+
+        fechaElemento.textContent = fecha.toLocaleDateString('es-ES', opciones);
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        actualizarFecha(); // Mostrar la fecha al cargar la página
+
+        // También puedes actualizar cada día a medianoche si mantienes la página abierta
+        const ahora = new Date();
+        const msHastaMedianoche = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() + 1).getTime() - ahora.getTime();
+
+        setTimeout(() => {
+            actualizarFecha();
+            setInterval(actualizarFecha, 24 * 60 * 60 * 1000); // Actualiza cada 24 horas
+        }, msHastaMedianoche);
+    });
     </script>
 </body>
 </html>
